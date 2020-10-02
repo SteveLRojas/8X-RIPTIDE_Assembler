@@ -887,7 +887,7 @@ void m_xec(linked_source* current_source, linked_instruction* current_instructio
 		exit(1);
 	}
 	literal_val = label_or_immediate_value(operands, source_head, offset, current_source->n_line, current_source->name_index);
-	
+
 	char* first = strtok(insides, ",");
 	if (!first) 
 	{
@@ -901,7 +901,7 @@ void m_xec(linked_source* current_source, linked_instruction* current_instructio
 	if(second)	//uses IV as source
 	{
 		l_field = atoi(second);
-		current_instruction->instruction_low = (l_field << 5) | (literal_val & 0x31);
+		current_instruction->instruction_low = (l_field << 5) | (literal_val & 0x1F);
 	}
 	else	//uses register as source
 	{
