@@ -1116,7 +1116,7 @@ unsigned long label_or_immediate_value(char* candidate, linked_source* source_he
 	//is decimal
 	if(0x30 <= candidate[0] <= 0x39)
 	{
-		return strtol((candidate + 1), NULL, 10);
+		return strtol(candidate, NULL, 10);
 	}
 	// throw error
 	else
