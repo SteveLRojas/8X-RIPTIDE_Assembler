@@ -464,7 +464,7 @@ int main(int argc, char** argv)
 	int written = 0;
 	FILE *f = fopen(argv[2], "wb");
 	while (written < prg_size){
-		written = fwrite(output_arr+written, sizeof(uint8_t), prg_size-written, f);
+		written += fwrite(output_arr+written, sizeof(uint8_t), prg_size-written, f);
 		if (written == 0) {
 		    printf("Error writing output file!\n");
 		}
