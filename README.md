@@ -8,3 +8,4 @@ Simple assembler for 8X300 and 8X-RIPTIDE CPUs
   * Changed get_label_address to look for labels in all segments.  
   * Changed str_find_word to recognize comas and parentheses as word boundaries.  
   * Added contentent to example files.  
+  * Fixed bug that caused incorrect segment addresses.  

@@ -288,22 +288,22 @@ int main(int argc, char** argv)
 			}
 			if(current_node->s_line[current_node->mnemonic_end + d] == '@')	//octal
 			{
-				current_source_segment->offset = strtol((current_node->s_line + d + 1), NULL, 8);
+				current_source_segment->offset = strtol((current_node->s_line + current_node->mnemonic_end + d + 1), NULL, 8);
 				break;
 			}
 			if(current_node->s_line[current_node->mnemonic_end + d] == '$')	//hexadecimal
 			{
-				current_source_segment->offset = strtol((current_node->s_line + d + 1), NULL, 16);
+				current_source_segment->offset = strtol((current_node->s_line + current_node->mnemonic_end + d + 1), NULL, 16);
 				break;
 			}
 			if(current_node->s_line[current_node->mnemonic_end + d] == '%')	//binary
 			{
-				current_source_segment->offset = strtol((current_node->s_line + d + 1), NULL, 2);
+				current_source_segment->offset = strtol((current_node->s_line + current_node->mnemonic_end + d + 1), NULL, 2);
 				break;
 			}
-			if(0x30 <= (current_node->s_line[current_node->mnemonic_end + d]) <= 0x39)	//decimal
+			if((0x30 <= (current_node->s_line[current_node->mnemonic_end + d])) && (0x39 >= (current_node->s_line[current_node->mnemonic_end + d])))	//decimal
 			{
-				current_source_segment->offset = strtol((current_node->s_line + d), NULL, 10);
+				current_source_segment->offset = strtol((current_node->s_line + current_node->mnemonic_end + d), NULL, 10);
 				break;
 			}
 		}
