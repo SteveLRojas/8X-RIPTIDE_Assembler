@@ -9,3 +9,4 @@ Simple assembler for 8X300 and 8X-RIPTIDE CPUs
   * Changed str_find_word to recognize comas and parentheses as word boundaries.  
   * Added contentent to example files.  
   * Fixed bug that caused incorrect segment addresses.  
+  * Fixed bug that caused the program size to be calculated incorrectly.  

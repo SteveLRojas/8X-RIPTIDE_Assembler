@@ -451,6 +451,7 @@ int main(int argc, char** argv)
 
 	//write binary file
 	unsigned long prg_size = get_binary_size(binary_segment_head);
+	printf("Prog size: %lu\n", prg_size);
 	uint8_t* output_arr = (uint8_t*)malloc(prg_size);
 
 	for(unsigned long d = 0; d < prg_size; ++d)
@@ -1107,7 +1108,7 @@ unsigned long label_or_immediate_value(char* candidate, linked_source_segment* s
 		return strtol((candidate + 1), NULL, 2);
 	}
 	//is decimal
-	if(0x30 <= candidate[0] <= 0x39)
+	if((0x30 <= candidate[0]) && (candidate[0] <= 0x39))
 	{
 		return strtol(candidate, NULL, 10);
 	}
@@ -1213,7 +1214,8 @@ inline unsigned long get_binary_segment_end(linked_binary_segment* current_binar
 
 inline unsigned long get_binary_size(linked_binary_segment* binary_segment_head)
 {
-	unsigned long size = 0;
+	unsigned long end = 0;
+	unsigned long start = 0xFFFFFFFF;
 	linked_binary_segment* current_segment = binary_segment_head;
 
 	while(1)
@@ -1221,9 +1223,12 @@ inline unsigned long get_binary_size(linked_binary_segment* binary_segment_head)
 		current_segment = current_segment->next;
 		if(current_segment == NULL)
 			break;
-		size += (current_segment->end_address) - (current_segment->start_address) + 2;
+		if(current_segment->start_address < start)
+			start = current_segment->start_address;
+		if(current_segment->end_address > end)
+			end = current_segment->end_address;
 	}
-	return size;
+	return (end - start) + 2;
 }
 
 inline void fill_buf(linked_binary_segment* binary_segment_head, uint8_t* buffer)
