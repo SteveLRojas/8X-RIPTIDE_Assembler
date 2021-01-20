@@ -10,3 +10,10 @@ Simple assembler for 8X300 and 8X-RIPTIDE CPUs
   * Added contentent to example files.  
   * Fixed bug that caused incorrect segment addresses.  
   * Fixed bug that caused the program size to be calculated incorrectly.  
+  * Added a function to generate MIF and COE files for Quartus and Vivado.  
+
+* Usage example:  
+  * 8xasm test.asm output.bin  
+
+The above example will generate not only the specified .bin file, but also a .mif and a .coe file.  
+These files are used for initalizing memory in FPGAs, which is useful when working with FPGA implementations of the supported processors.  

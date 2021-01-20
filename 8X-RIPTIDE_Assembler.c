@@ -88,6 +88,9 @@ void find_and_replace(linked_node* current_node, char* s_replace, char* s_new);
 int str_find_word(char* where, char* what, unsigned int* start, unsigned int* end);
 void str_replace(char** where, char* s_new, unsigned int word_start, unsigned int word_end);
 unsigned int str_size(char* s_input);
+void replace_file_extension(char* new_ext, char* out_name, char* new_name);
+void write_mif(char* out_name, uint8_t* out_data, unsigned long prg_size);
+void write_coe(char* out_name, uint8_t* out_data, unsigned long prg_size);
 
 int main(int argc, char** argv)
 {
@@ -465,12 +468,14 @@ int main(int argc, char** argv)
 	int written = 0;
 	FILE *f = fopen(argv[2], "wb");
 	while (written < prg_size){
-		written += fwrite(output_arr+written, sizeof(uint8_t), prg_size-written, f);
+		written += fwrite(output_arr + written, sizeof(uint8_t), prg_size-written, f);
 		if (written == 0) {
 		    printf("Error writing output file!\n");
 		}
 	}
 	fclose(f);
+	write_mif(argv[2], output_arr, prg_size);
+	write_coe(argv[2], output_arr, prg_size);
 	free(output_arr);
 	return 0;
 }
@@ -1350,4 +1355,90 @@ unsigned int str_size(char* s_input)
 			break;
 	}
 	return size;
+}
+
+void replace_file_extension(char* new_ext, char* out_name, char* new_name)
+{
+	uint8_t count = 0;
+	uint8_t count_copy;
+	//copy string and get its length
+	do
+	{
+		new_name[count] = out_name[count];
+		++count;
+	}while(out_name[count]);
+	count_copy = count;
+	//search for a '.' starting from the end
+	while(count)
+	{
+		count = count - 1;
+		if(new_name[count] == '.')	//replace it and what follows with .mif
+		{
+			for(unsigned int d = 0; d < 5; ++d)
+			{
+				new_name[count] = new_ext[d];
+				count = count + 1;
+			}
+			break;
+		}
+	}
+	//check if the file name had no '.'
+	if(count == 0)
+	{
+		count = count_copy;
+		for(unsigned int d = 0; d < 5; ++d)
+		{
+			new_name[count] = new_ext[d];
+			count = count + 1;
+		}
+	}
+}
+
+void write_mif(char* out_name, uint8_t* out_data, unsigned long prg_size)
+{
+	static char mif_string[] = ".mif";
+	char new_name[32];
+	replace_file_extension(mif_string, out_name, new_name);
+
+	FILE* mif_file = fopen(new_name, "w");
+	if(mif_file == NULL)
+	{
+		printf("Error creating mif file!");
+		exit(1);
+	}
+	fprintf(mif_file, "DEPTH = %lu;\n", prg_size / 2);	//prg_size is in bytes, we want words
+	fprintf(mif_file, "WIDTH = 16;\n");
+	fprintf(mif_file, "ADDRESS_RADIX = HEX;\n");
+	fprintf(mif_file, "DATA_RADIX = HEX;\n");
+	fprintf(mif_file, "CONTENT\nBEGIN\n");
+	for(unsigned long address = 0; address < (prg_size / 2); ++address)
+	{
+		fprintf(mif_file, "%X : %04X;\n", address, ((out_data[address * 2 + 1] << 8) | out_data[address * 2]));
+	}
+	fprintf(mif_file, "END;\n");
+	fclose(mif_file);
+}
+
+void write_coe(char* out_name, uint8_t* out_data, unsigned long prg_size)
+{
+	static char coe_string[] = ".coe";
+	char new_name[32];
+	replace_file_extension(coe_string, out_name, new_name);
+
+	FILE* coe_file = fopen(new_name, "w");
+	if(coe_file == NULL)
+	{
+		printf("Error creating coe file!");
+		exit(1);
+	}
+	fprintf(coe_file, "memory_initialization_radix=16;\n");
+	fprintf(coe_file, "memory_initialization_vector=\n");
+	for(unsigned long address = 0; address < (prg_size / 2); ++address)
+	{
+		if((address + 1) < (prg_size / 2))
+			fprintf(coe_file, "%04X,\n", ((out_data[address * 2 + 1] << 8) | out_data[address * 2]));
+		else
+			fprintf(coe_file, "%04X;\n", ((out_data[address * 2 + 1] << 8) | out_data[address * 2]));
+	}
+	fclose(coe_file);
 }
