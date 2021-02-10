@@ -51,8 +51,8 @@ char* mnemonics[] = {"MOVE", "ADD", "AND", "XOR", "XEC", "NZT", "XMIT", "JMP", "
 #define N_MNEMONICS 12
 char include_string[] = "INCLUDE";
 char equ_string[] = "EQU";
-char high_string[] = "HIGH";
-char low_string[] = "LOW";
+char high_string[] = "`HIGH";
+char low_string[] = "`LOW";
 char include_name_buf[128];
 char* name_table[256];
 
@@ -1087,13 +1087,15 @@ inline unsigned long get_label_address(linked_source_segment* source_segment_hea
 unsigned long label_or_immediate_value(char* candidate, linked_source_segment* source_segment_head, unsigned long line_num, uint8_t name_index)
 {
 	
-	//is label?
-	if(candidate[0] >= 0x41 && candidate[0] <= 0x5a)
+	//is label or has keyword?
+	if((candidate[0] >= 0x41 && candidate[0] <= 0x5a) | candidate[0] == '`')
 	{
 		if(str_comp_partial(candidate, high_string))
-			return get_label_address(source_segment_head, candidate + 4, line_num, name_index) >> 8;
+			//return get_label_address(source_segment_head, candidate + 4, line_num, name_index) >> 8;
+			return label_or_immediate_value(candidate + 5, source_segment_head, line_num, name_index) >> 8;
 		else if(str_comp_partial(candidate, low_string))
-			return get_label_address(source_segment_head, candidate + 3, line_num, name_index) & 0xFF;
+			return label_or_immediate_value(candidate + 4, source_segment_head, line_num, name_index) & 0xFF;
+			//return get_label_address(source_segment_head, candidate + 3, line_num, name_index) & 0xFF;
 		else
 			return get_label_address(source_segment_head, candidate, line_num, name_index);
 	}
