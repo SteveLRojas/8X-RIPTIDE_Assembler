@@ -6,25 +6,25 @@
 --------------------Configuration: RIPTIDE_Assembler - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\Users\DRAGOM~1\AppData\Local\Temp\RSPA008.tmp" with contents
+Creating temporary file "C:\Users\DRAGOM~1\AppData\Local\Temp\RSP7CA1.tmp" with contents
 [
 /nologo /ML /Za /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Release/RIPTIDE_Assembler.pch" /Yu"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c 
 "D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp"
 ]
-Creating command line "cl.exe @C:\Users\DRAGOM~1\AppData\Local\Temp\RSPA008.tmp" 
-Creating temporary file "C:\Users\DRAGOM~1\AppData\Local\Temp\RSPA009.tmp" with contents
+Creating command line "cl.exe @C:\Users\DRAGOM~1\AppData\Local\Temp\RSP7CA1.tmp" 
+Creating temporary file "C:\Users\DRAGOM~1\AppData\Local\Temp\RSP7CA2.tmp" with contents
 [
 /nologo /ML /Za /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Release/RIPTIDE_Assembler.pch" /Yc"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c 
 "D:\RIPTIDE_Assembler\StdAfx.cpp"
 ]
-Creating command line "cl.exe @C:\Users\DRAGOM~1\AppData\Local\Temp\RSPA009.tmp" 
-Creating temporary file "C:\Users\DRAGOM~1\AppData\Local\Temp\RSPA00A.tmp" with contents
+Creating command line "cl.exe @C:\Users\DRAGOM~1\AppData\Local\Temp\RSP7CA2.tmp" 
+Creating temporary file "C:\Users\DRAGOM~1\AppData\Local\Temp\RSP7CA3.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:no /pdb:"Release/RIPTIDE_Assembler.pdb" /machine:I386 /out:"Release/RIPTIDE_Assembler.exe" 
 .\Release\RIPTIDE_Assembler.obj
 .\Release\StdAfx.obj
 ]
-Creating command line "link.exe @C:\Users\DRAGOM~1\AppData\Local\Temp\RSPA00A.tmp"
+Creating command line "link.exe @C:\Users\DRAGOM~1\AppData\Local\Temp\RSP7CA3.tmp"
 <h3>Output Window</h3>
 Compiling...
 StdAfx.cpp
@@ -45,15 +45,15 @@ D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(817) : warning C4244: '=' : conversio
 D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(818) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
 D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(859) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
 D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(860) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
-D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(912) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
-D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(938) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
-D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(970) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
-D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(985) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
-D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(986) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
-D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(996) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
-D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(1096) : warning C4554: '|' : check operator precedence for possible error; use parentheses to clarify precedence
-D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(1304) : warning C4018: '<=' : signed/unsigned mismatch
-D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(1306) : warning C4018: '<' : signed/unsigned mismatch
+D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(914) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
+D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(942) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
+D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(978) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
+D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(993) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
+D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(994) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
+D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(1004) : warning C4244: '=' : conversion from 'unsigned long' to 'unsigned char', possible loss of data
+D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(1104) : warning C4554: '|' : check operator precedence for possible error; use parentheses to clarify precedence
+D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(1312) : warning C4018: '<=' : signed/unsigned mismatch
+D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(1314) : warning C4018: '<' : signed/unsigned mismatch
 Linking...
 
 

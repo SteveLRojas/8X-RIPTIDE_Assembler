@@ -16,6 +16,8 @@ Simple assembler for 8X300 and 8X-RIPTIDE CPUs
   * Added Visual C++ project with 32-bit Windows executable.  
   * Added an AMD64 Linux executable.  
   * Updated one of the example files.  
+  * Added warning messages for NZT and XEC instructions when the target is out of range.  
+  * Updated executables.  
 
 * Usage example:  
   * 8xasm test.asm output.bin  

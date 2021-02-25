@@ -380,6 +380,7 @@ int main(int argc, char** argv)
 			current_instruction->next = (linked_instruction*)malloc(sizeof(linked_instruction));
 			current_instruction = current_instruction->next;
 			current_instruction->next = NULL;
+			current_instruction->address = d;	//this is the byte address, not the word address
 			switch(current_source->mnemonic_index)
 			{
 				case 0:	//MOVE
@@ -419,7 +420,6 @@ int main(int argc, char** argv)
 					p_error(current_source, current_instruction, source_segment_head);
 					break;
 			}//end case
-			current_instruction->address = d;
 		}//end for
 	}//end while
 	
@@ -887,15 +887,15 @@ void m_xec(linked_source* current_source, linked_instruction* current_instructio
 	
 	if (insides == NULL)
 	{
-		fprintf(stderr, "Syntax error parsing operands of xec instruction at line: %lu in file %s\n", current_source->n_line, name_table[current_source->name_index]);
+		printf("Syntax error parsing operands of xec instruction at line: %lu in file %s\n", current_source->n_line, name_table[current_source->name_index]);
 		exit(1);
 	}
 	literal_val = label_or_immediate_value(operands, source_segment_head, current_source->n_line, current_source->name_index);
-
+	
 	char* first = strtok(insides, ",");
 	if (!first) 
 	{
-		fprintf(stderr, "Error parsing operands of xec instruction at line: %lu in file %s\n", current_source->n_line, name_table[current_source->name_index]);
+		printf("Error parsing operands of xec instruction at line: %lu in file %s\n", current_source->n_line, name_table[current_source->name_index]);
 		exit(1);
 	}
 	char* second = strtok(NULL, ",");
@@ -906,10 +906,14 @@ void m_xec(linked_source* current_source, linked_instruction* current_instructio
 	{
 		l_field = atoi(second);
 		current_instruction->instruction_low = (l_field << 5) | (literal_val & 0x1F);
+		if((current_instruction->address >> 6) != (literal_val >> 5))
+			printf("Warning: XEC instruction at line %lu in file %s cannot jump over 32 word boundary!\n", current_source->n_line, name_table[current_source->name_index]);
 	}
 	else	//uses register as source
 	{
 		current_instruction->instruction_low = literal_val & 0xff;
+		if((current_instruction->address >> 9) != (literal_val >> 8))
+			printf("Warning: XEC instruction at line %lu in file %s cannot jump over 256 word boundary!\n", current_source->n_line, name_table[current_source->name_index]);
 	}
 }
 
@@ -936,12 +940,16 @@ void m_nzt(linked_source* current_source, linked_instruction* current_instructio
 	{
 		label_address = label_or_immediate_value(second, source_segment_head, current_source->n_line, current_source->name_index);
 		current_instruction->instruction_low = label_address & 0xFF;
+		if((current_instruction->address >> 9) != (label_address >> 8))
+			printf("Warning: NZT instruction at line %lu in file %s cannot jump over 256 word boundary!\n", current_source->n_line, name_table[current_source->name_index]);
 	}
 	else	//operand is the IV bus
 	{
 		label_address = label_or_immediate_value(third, source_segment_head, current_source->n_line, current_source->name_index);
 		l_field = atoi(second);
 		current_instruction->instruction_low = (l_field << 5) | (label_address & 0x1F);
+		if((current_instruction->address >> 6) != (label_address >> 5))
+			printf("Warning: NZT instruction at line %lu in file %s cannot jump over 32 word boundary!\n", current_source->n_line, name_table[current_source->name_index]);
 	}
 }
 
