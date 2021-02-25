@@ -7,7 +7,7 @@ Simple assembler for 8X300 and 8X-RIPTIDE CPUs
   * Fixed one of the example files.  
   * Changed get_label_address to look for labels in all segments.  
   * Changed str_find_word to recognize comas and parentheses as word boundaries.  
-  * Added contentent to example files.  
+  * Added content to example files.  
   * Fixed bug that caused incorrect segment addresses.  
   * Fixed bug that caused the program size to be calculated incorrectly.  
   * Added a function to generate MIF and COE files for Quartus and Vivado.  
