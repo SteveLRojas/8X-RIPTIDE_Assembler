@@ -6,28 +6,20 @@
 --------------------Configuration: RIPTIDE_Assembler - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\Users\DRAGOM~1\AppData\Local\Temp\RSP7CA1.tmp" with contents
+Creating temporary file "C:\Users\DRAGOM~1\AppData\Local\Temp\RSP6247.tmp" with contents
 [
 /nologo /ML /Za /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Release/RIPTIDE_Assembler.pch" /Yu"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c 
 "D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp"
 ]
-Creating command line "cl.exe @C:\Users\DRAGOM~1\AppData\Local\Temp\RSP7CA1.tmp" 
-Creating temporary file "C:\Users\DRAGOM~1\AppData\Local\Temp\RSP7CA2.tmp" with contents
-[
-/nologo /ML /Za /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Release/RIPTIDE_Assembler.pch" /Yc"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c 
-"D:\RIPTIDE_Assembler\StdAfx.cpp"
-]
-Creating command line "cl.exe @C:\Users\DRAGOM~1\AppData\Local\Temp\RSP7CA2.tmp" 
-Creating temporary file "C:\Users\DRAGOM~1\AppData\Local\Temp\RSP7CA3.tmp" with contents
+Creating command line "cl.exe @C:\Users\DRAGOM~1\AppData\Local\Temp\RSP6247.tmp" 
+Creating temporary file "C:\Users\DRAGOM~1\AppData\Local\Temp\RSP6248.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:no /pdb:"Release/RIPTIDE_Assembler.pdb" /machine:I386 /out:"Release/RIPTIDE_Assembler.exe" 
 .\Release\RIPTIDE_Assembler.obj
 .\Release\StdAfx.obj
 ]
-Creating command line "link.exe @C:\Users\DRAGOM~1\AppData\Local\Temp\RSP7CA3.tmp"
+Creating command line "link.exe @C:\Users\DRAGOM~1\AppData\Local\Temp\RSP6248.tmp"
 <h3>Output Window</h3>
-Compiling...
-StdAfx.cpp
 Compiling...
 RIPTIDE_Assembler.cpp
 D:\RIPTIDE_Assembler\RIPTIDE_Assembler.cpp(190) : warning C4018: '<=' : signed/unsigned mismatch

@@ -18,9 +18,12 @@ Simple assembler for 8X300 and 8X-RIPTIDE CPUs
   * Updated one of the example files.  
   * Added warning messages for NZT and XEC instructions when the target is out of range.  
   * Updated executables.  
+  * Added -DEBUG flag that can be used to enable debug output.  
+  * Fixed bug that caused incorrect rotation value for ADD, AND, and XOR instructions.  
 
 * Usage example:  
   * 8xasm test.asm output.bin  
+  * 8xasm test.asm output.bin -DEBUG  
 
 The above example will generate not only the specified .bin file, but also a .mif and a .coe file.  
 These files are used for initalizing memory in FPGAs, which is useful when working with FPGA implementations of the supported processors.  

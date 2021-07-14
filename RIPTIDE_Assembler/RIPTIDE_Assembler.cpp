@@ -58,8 +58,10 @@ char include_string[] = "INCLUDE";
 char equ_string[] = "EQU";
 char high_string[] = "`HIGH";
 char low_string[] = "`LOW";
-char include_name_buf[128];
+char debug_string[] = "-DEBUG";
+char include_name_buf[256];
 char* name_table[256];
+uint8_t debug_enable;
 
 void load_file(char* file_name, linked_node* head);
 void include_merge(linked_node* prev_node, linked_node* include_node, linked_node* new_head);
@@ -140,6 +142,12 @@ int main(int argc, char** argv)
 	}
 	//Load source file
 	load_file(argv[1], head);
+
+	//Check debug flag
+	if((argc > 3) && str_comp_partial(debug_string, argv[3]))
+		debug_enable = 0xFF;
+	else
+		debug_enable = 0;
 	
 	
 	//Replace includes with source
@@ -224,17 +232,21 @@ int main(int argc, char** argv)
 	}
 		
 	//print lines
-	current_node = head;
-	while(1)
+	if(debug_enable)
 	{
-		current_node = current_node->next;
-		if(current_node == NULL)
-			break;
-		printf("%lu ", current_node->n_line);
-		if(current_node->s_label)
-			printf("%s", current_node->s_label);
-		printf("\t%s\n", current_node->s_line);
+		current_node = head;
+		while(1)
+		{
+			current_node = current_node->next;
+			if(current_node == NULL)
+				break;
+			printf("%lu ", current_node->n_line);
+			if(current_node->s_label)
+				printf("%s", current_node->s_label);
+			printf("\t%s\n", current_node->s_line);
+		}
 	}
+
 	//complete the node list
 	current_node = head;
 	while(1)
@@ -492,9 +504,9 @@ void load_file(char* file_name, linked_node* head)
 	unsigned int line_end = 0;
 	unsigned int label_end;
 	unsigned long current_source_line = 0;
-	char* floating_label = (char*)malloc(sizeof(int) * 64);
+	char* floating_label = (char*)malloc(sizeof(int) * 128);
 	unsigned int floating_label_size = 0;
-	char* current_line = (char*)malloc(sizeof(char) * 128);
+	char* current_line = (char*)malloc(sizeof(char) * 256);
 	uint8_t name_index = 0;
 	
 	while(name_table[name_index])
@@ -510,11 +522,11 @@ void load_file(char* file_name, linked_node* head)
 		printf("Failed to open input file: %s\n", file_name);
 		exit(1);
 	}
-	while (fgets(current_line, 128, fp_in))
+	while (fgets(current_line, 256, fp_in))
 	{
 		++current_source_line;
 		//convert to all caps
-		for(int i = 0; i < 128; ++i)
+		for(int i = 0; i < 256; ++i)
 		{
 			if(current_line[i] == 0x00)
 				break;
@@ -550,7 +562,7 @@ void load_file(char* file_name, linked_node* head)
 						break;
 					}
 					++line_start;
-					if(line_start == 128)
+					if(line_start == 256)
 					{
 						printf("syntax error in line %lu in file %s\n", current_source_line, name_table[name_index]);
 						exit(1);
@@ -559,7 +571,7 @@ void load_file(char* file_name, linked_node* head)
 				if(line_start == 0)
 				{
 					//line is only a label
-					for(int i = 0; i < label_end; ++i)
+					for(unsigned int i = 0; i < label_end; ++i)
 					{
 						floating_label[i] = current_line[i];
 					}
@@ -574,7 +586,7 @@ void load_file(char* file_name, linked_node* head)
 					while((current_line[line_end] != ';') && (current_line[line_end] != 0x0a) && (current_line[line_end] != 0x0D) && (current_line[line_end] != 0x00))
 					{
 						++line_end;
-						if(line_end == 128)
+						if(line_end == 256)
 						{
 							printf("syntax error in line %lu in file %s\n", current_source_line, name_table[name_index]);
 							exit(1);
@@ -589,12 +601,12 @@ void load_file(char* file_name, linked_node* head)
 					current_node->name_index = name_index;
 					current_node->s_label = (char*)malloc(sizeof(char) * (label_end + 1));
 					current_node->s_line = (char*)malloc(sizeof(char) * (line_end + 1 - line_start));
-					for(int i = 0; i < label_end; ++i)
+					for(unsigned int i = 0; i < label_end; ++i)
 					{
 						current_node->s_label[i] = current_line[i];
 					}
 					current_node->s_label[label_end] = 0x00;
-					for(int i = 0; i < (line_end - line_start); ++i)
+					for(unsigned int i = 0; i < (line_end - line_start); ++i)
 					{
 						current_node->s_line[i] = current_line[i + line_start];
 					}
@@ -616,7 +628,7 @@ void load_file(char* file_name, linked_node* head)
 						break;
 					}
 					++line_start;
-					if(line_start == 128)
+					if(line_start == 256)
 					{
 						printf("syntax error in line %lu in file %s\n", current_source_line, name_table[name_index]);
 						exit(1);
@@ -630,7 +642,7 @@ void load_file(char* file_name, linked_node* head)
 					while((current_line[line_end] != ';') && (current_line[line_end] != 0x0a) && (current_line[line_end] != 0x0D) && (current_line[line_end] != 0x00))
 					{
 						++line_end;
-						if(line_end == 128)
+						if(line_end == 256)
 						{
 							printf("syntax error in line %lu in file %s\n", current_source_line, name_table[name_index]);
 							exit(1);
@@ -645,7 +657,7 @@ void load_file(char* file_name, linked_node* head)
 					if(floating_label_size)
 					{
 						current_node->s_label = (char*)malloc(sizeof(char) * floating_label_size);
-						for(int i = 0; i < floating_label_size; ++i)
+						for(unsigned int i = 0; i < floating_label_size; ++i)
 						{
 							current_node->s_label[i] = floating_label[i];
 						}
@@ -653,7 +665,7 @@ void load_file(char* file_name, linked_node* head)
 					else
 						current_node->s_label = NULL;
 					current_node->s_line = (char*)malloc(sizeof(char) * (line_end + 1 - line_start));
-					for(int i = 0; i < (line_end - line_start); ++i)
+					for(unsigned int i = 0; i < (line_end - line_start); ++i)
 					{
 						current_node->s_line[i] = current_line[i + line_start];
 					}
@@ -727,12 +739,18 @@ void m_move(linked_source* current_source, linked_instruction* current_instructi
 	
 	current_instruction->instruction_high = source & 0x1F;
 	current_instruction->instruction_low = (rotate << 5) | (dest & 0x1F);
+	//debug output
+	if(debug_enable)
+		printf("%X\t%X %X\tMOVE\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
 }
 
 void m_nop(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
 {
 	current_instruction->instruction_high = 0x00;
 	current_instruction->instruction_low = 0x00;
+	//debug output
+	if(debug_enable)
+		printf("%X\t%X %X\tNOP\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low);
 }
 
 void m_add(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -760,7 +778,7 @@ void m_add(linked_source* current_source, linked_instruction* current_instructio
 		dest = strtol(second + 1, NULL, 8);
 		rotate = 0;
 		
-		if (first[len_first] == ')') 	// Rotate specified
+		if (first[len_first - 1] == ')') 	// Rotate specified
 		{
 			rotate = strtol(first + len_first - 2, NULL, 10) & 7;
 		}	
@@ -774,6 +792,9 @@ void m_add(linked_source* current_source, linked_instruction* current_instructio
 	
 	current_instruction->instruction_high = (source & 0x1F) | 0x20;
 	current_instruction->instruction_low = (rotate << 5) | (dest & 0x1F);
+	//debug output
+	if(debug_enable)
+		printf("%X\t%X %X\tADD\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
 }
 
 void m_and(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -801,7 +822,7 @@ void m_and(linked_source* current_source, linked_instruction* current_instructio
 		dest = strtol(second + 1, NULL, 8);
 		rotate = 0;
 		
-		if (first[len_first] == ')') 	// Rotate specified
+		if (first[len_first - 1] == ')') 	// Rotate specified
 		{
 			rotate = strtol(first + len_first - 2, NULL, 10) & 7;
 		}	
@@ -816,6 +837,9 @@ void m_and(linked_source* current_source, linked_instruction* current_instructio
 	
 	current_instruction->instruction_high = (source & 0x1F) | 0x40;
 	current_instruction->instruction_low = (rotate << 5) | (dest & 0x1F);
+	//debug output
+	if(debug_enable)
+		printf("%X\t%X %X\tAND\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
 }
 
 void m_xor(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -843,7 +867,7 @@ void m_xor(linked_source* current_source, linked_instruction* current_instructio
 		dest = strtol(second + 1, NULL, 8);
 		rotate = 0;
 		
-		if (first[len_first] == ')') 	// Rotate specified
+		if (first[len_first - 1] == ')') 	// Rotate specified
 		{
 			rotate = strtol(first + len_first - 2, NULL, 10) & 7;
 		}	
@@ -858,6 +882,9 @@ void m_xor(linked_source* current_source, linked_instruction* current_instructio
 	
 	current_instruction->instruction_high = (source & 0x1F) | 0x60;
 	current_instruction->instruction_low = (rotate << 5) | (dest & 0x1F);
+	//debug output
+	if(debug_enable)
+		printf("%X\t%X %X\tXOR\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
 }
 
 void m_xec(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -915,6 +942,9 @@ void m_xec(linked_source* current_source, linked_instruction* current_instructio
 		if((current_instruction->address >> 9) != (literal_val >> 8))
 			printf("Warning: XEC instruction at line %lu in file %s cannot jump over 256 word boundary!\n", current_source->n_line, name_table[current_source->name_index]);
 	}
+	//debug output
+	if(debug_enable)
+		printf("%X\t%X %X\tXEC\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, operands, first, second);
 }
 
 void m_nzt(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -951,6 +981,9 @@ void m_nzt(linked_source* current_source, linked_instruction* current_instructio
 		if((current_instruction->address >> 6) != (label_address >> 5))
 			printf("Warning: NZT instruction at line %lu in file %s cannot jump over 32 word boundary!\n", current_source->n_line, name_table[current_source->name_index]);
 	}
+	//debug output
+	if(debug_enable)
+		printf("%X\t%X %X\tNZT\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
 }
 
 void m_xmit(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -982,6 +1015,9 @@ void m_xmit(linked_source* current_source, linked_instruction* current_instructi
 		l_field = atoi(third);
 		current_instruction->instruction_low = (l_field << 5) | (immediate_value & 0x1F);
 	}
+	//debug output
+	if(debug_enable)
+		printf("%X\t%X %X\tXMIT\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
 }
 
 void m_jmp(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -992,6 +1028,9 @@ void m_jmp(linked_source* current_source, linked_instruction* current_instructio
 	immediate_value = label_or_immediate_value(operands, source_segment_head, current_source->n_line, current_source->name_index);
 	current_instruction->instruction_high = 0xE0 | ((immediate_value >> 8) & 0x1F);
 	current_instruction->instruction_low = immediate_value & 0xFF;
+	//debug output
+	if(debug_enable)
+		printf("%X\t%X %X\tJMP\t%s (%X)\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, operands, immediate_value);
 }
 
 void m_call(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -1002,12 +1041,18 @@ void m_call(linked_source* current_source, linked_instruction* current_instructi
 	immediate_value = label_or_immediate_value(operands, source_segment_head, current_source->n_line, current_source->name_index);
 	current_instruction->instruction_high = 0xA7;
 	current_instruction->instruction_low = immediate_value & 0xFF;
+	//debug output
+	if(debug_enable)
+		printf("%X\t%X %X\tCALL\t%s (%X)\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, operands, immediate_value);
 }
 
 void m_ret(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
 {
 	current_instruction->instruction_high = 0xAF;
 	current_instruction->instruction_low = 0x00;
+	//debug output
+	if(debug_enable)
+		printf("%X\t%X %X\tRET\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low);
 }
 
 void p_error(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -1101,7 +1146,7 @@ unsigned long label_or_immediate_value(char* candidate, linked_source_segment* s
 {
 	
 	//is label or has keyword?
-	if((candidate[0] >= 0x41 && candidate[0] <= 0x5a) | candidate[0] == '`')
+	if((candidate[0] >= 0x41 && candidate[0] <= 0x5a) || (candidate[0] == '`'))
 	{
 		if(str_comp_partial(candidate, high_string))
 			//return get_label_address(source_segment_head, candidate + 4, line_num, name_index) >> 8;
@@ -1309,9 +1354,9 @@ inline int str_find_word(char* where, char* what, unsigned int* start, unsigned 
 	unsigned int where_size = str_size(where);
 	if(what_size > where_size)
 		return 0;
-	for(int offset = 0; offset <= (where_size - what_size); ++offset)
+	for(unsigned int offset = 0; offset <= (where_size - what_size); ++offset)
 	{
-		for(int d = 0; d < what_size; ++d)
+		for(unsigned int d = 0; d < what_size; ++d)
 		{
 			if(!what[d])
 			{
@@ -1457,5 +1502,3 @@ void write_coe(char* out_name, uint8_t* out_data, unsigned long prg_size)
 	}
 	fclose(coe_file);
 }
-
-
