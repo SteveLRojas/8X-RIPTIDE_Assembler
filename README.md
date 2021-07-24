@@ -20,6 +20,8 @@ Simple assembler for 8X300 and 8X-RIPTIDE CPUs
   * Updated executables.  
   * Added -DEBUG flag that can be used to enable debug output.  
   * Fixed bug that caused incorrect rotation value for ADD, AND, and XOR instructions.  
+  * Fixed bug that caused EQU defines to replace only the first instance in each line.  
+  * Added error checking in MOVE, ADD, AND, and XOR instructions to ensure valid registers.  
 
 * Usage example:  
   * 8xasm test.asm output.bin  

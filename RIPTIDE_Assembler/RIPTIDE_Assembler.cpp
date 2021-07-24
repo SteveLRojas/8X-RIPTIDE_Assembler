@@ -720,9 +720,11 @@ void m_move(linked_source* current_source, linked_instruction* current_instructi
 	if(n_operands == 2)	//register to register or register to IV bus address
 	{
 		int len_first = strlen(first);
-	
-		source = strtol(first + 1, NULL, 8);
-		dest = strtol(second + 1, NULL, 8);
+		
+		source = regliv_machine_val(first, current_source->n_line, current_source->name_index);
+		dest = regliv_machine_val(second, current_source->n_line, current_source->name_index);
+		//source = strtol(first + 1, NULL, 8);
+		//dest = strtol(second + 1, NULL, 8);
 		rotate = 0;
 		
 		if (first[len_first - 1] == ')') 	// Rotate specified
@@ -741,7 +743,7 @@ void m_move(linked_source* current_source, linked_instruction* current_instructi
 	current_instruction->instruction_low = (rotate << 5) | (dest & 0x1F);
 	//debug output
 	if(debug_enable)
-		printf("%X\t%X %X\tMOVE\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
+		printf("%lX\t%X %X\tMOVE\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
 }
 
 void m_nop(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -750,7 +752,7 @@ void m_nop(linked_source* current_source, linked_instruction* current_instructio
 	current_instruction->instruction_low = 0x00;
 	//debug output
 	if(debug_enable)
-		printf("%X\t%X %X\tNOP\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low);
+		printf("%lX\t%X %X\tNOP\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low);
 }
 
 void m_add(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -774,8 +776,10 @@ void m_add(linked_source* current_source, linked_instruction* current_instructio
 	{
 		int len_first = strlen(first);
 	
-		source = strtol(first + 1, NULL, 8);
-		dest = strtol(second + 1, NULL, 8);
+		source = regliv_machine_val(first, current_source->n_line, current_source->name_index);
+		dest = regliv_machine_val(second, current_source->n_line, current_source->name_index);
+		//source = strtol(first + 1, NULL, 8);
+		//dest = strtol(second + 1, NULL, 8);
 		rotate = 0;
 		
 		if (first[len_first - 1] == ')') 	// Rotate specified
@@ -794,7 +798,7 @@ void m_add(linked_source* current_source, linked_instruction* current_instructio
 	current_instruction->instruction_low = (rotate << 5) | (dest & 0x1F);
 	//debug output
 	if(debug_enable)
-		printf("%X\t%X %X\tADD\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
+		printf("%lX\t%X %X\tADD\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
 }
 
 void m_and(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -818,8 +822,10 @@ void m_and(linked_source* current_source, linked_instruction* current_instructio
 	{
 		int len_first = strlen(first);
 	
-		source = strtol(first + 1, NULL, 8);
-		dest = strtol(second + 1, NULL, 8);
+		source = regliv_machine_val(first, current_source->n_line, current_source->name_index);
+		dest = regliv_machine_val(second, current_source->n_line, current_source->name_index);
+		//source = strtol(first + 1, NULL, 8);
+		//dest = strtol(second + 1, NULL, 8);
 		rotate = 0;
 		
 		if (first[len_first - 1] == ')') 	// Rotate specified
@@ -839,7 +845,7 @@ void m_and(linked_source* current_source, linked_instruction* current_instructio
 	current_instruction->instruction_low = (rotate << 5) | (dest & 0x1F);
 	//debug output
 	if(debug_enable)
-		printf("%X\t%X %X\tAND\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
+		printf("%lX\t%X %X\tAND\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
 }
 
 void m_xor(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -863,8 +869,10 @@ void m_xor(linked_source* current_source, linked_instruction* current_instructio
 	{
 		int len_first = strlen(first);
 	
-		source = strtol(first + 1, NULL, 8);
-		dest = strtol(second + 1, NULL, 8);
+		source = regliv_machine_val(first, current_source->n_line, current_source->name_index);
+		dest = regliv_machine_val(second, current_source->n_line, current_source->name_index);
+		//source = strtol(first + 1, NULL, 8);
+		//dest = strtol(second + 1, NULL, 8);
 		rotate = 0;
 		
 		if (first[len_first - 1] == ')') 	// Rotate specified
@@ -884,7 +892,7 @@ void m_xor(linked_source* current_source, linked_instruction* current_instructio
 	current_instruction->instruction_low = (rotate << 5) | (dest & 0x1F);
 	//debug output
 	if(debug_enable)
-		printf("%X\t%X %X\tXOR\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
+		printf("%lX\t%X %X\tXOR\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
 }
 
 void m_xec(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -932,7 +940,7 @@ void m_xec(linked_source* current_source, linked_instruction* current_instructio
 	if(second)	//uses IV as source
 	{
 		l_field = atoi(second);
-		current_instruction->instruction_low = (l_field << 5) | (literal_val & 0x1F);
+		current_instruction->instruction_low = ((uint8_t)l_field << 5) | ((uint8_t)literal_val & 0x1F);
 		if((current_instruction->address >> 6) != (literal_val >> 5))
 			printf("Warning: XEC instruction at line %lu in file %s cannot jump over 32 word boundary!\n", current_source->n_line, name_table[current_source->name_index]);
 	}
@@ -944,7 +952,7 @@ void m_xec(linked_source* current_source, linked_instruction* current_instructio
 	}
 	//debug output
 	if(debug_enable)
-		printf("%X\t%X %X\tXEC\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, operands, first, second);
+		printf("%lX\t%X %X\tXEC\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, operands, first, second);
 }
 
 void m_nzt(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -983,7 +991,7 @@ void m_nzt(linked_source* current_source, linked_instruction* current_instructio
 	}
 	//debug output
 	if(debug_enable)
-		printf("%X\t%X %X\tNZT\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
+		printf("%lX\t%X %X\tNZT\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
 }
 
 void m_xmit(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -1017,7 +1025,7 @@ void m_xmit(linked_source* current_source, linked_instruction* current_instructi
 	}
 	//debug output
 	if(debug_enable)
-		printf("%X\t%X %X\tXMIT\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
+		printf("%lX\t%X %X\tXMIT\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
 }
 
 void m_jmp(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -1030,7 +1038,7 @@ void m_jmp(linked_source* current_source, linked_instruction* current_instructio
 	current_instruction->instruction_low = immediate_value & 0xFF;
 	//debug output
 	if(debug_enable)
-		printf("%X\t%X %X\tJMP\t%s (%X)\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, operands, immediate_value);
+		printf("%lX\t%X %X\tJMP\t%s (%lX)\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, operands, immediate_value);
 }
 
 void m_call(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -1043,7 +1051,7 @@ void m_call(linked_source* current_source, linked_instruction* current_instructi
 	current_instruction->instruction_low = immediate_value & 0xFF;
 	//debug output
 	if(debug_enable)
-		printf("%X\t%X %X\tCALL\t%s (%X)\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, operands, immediate_value);
+		printf("%lX\t%X %X\tCALL\t%s (%lX)\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, operands, immediate_value);
 }
 
 void m_ret(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -1052,7 +1060,7 @@ void m_ret(linked_source* current_source, linked_instruction* current_instructio
 	current_instruction->instruction_low = 0x00;
 	//debug output
 	if(debug_enable)
-		printf("%X\t%X %X\tRET\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low);
+		printf("%lX\t%X %X\tRET\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low);
 }
 
 void p_error(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -1093,7 +1101,7 @@ void remove_spaces(char* s)
 		{
 	    	*d = '\0';
 		}
-    } while (*s++ = *d++);
+    } while ((*s++ = *d++));
 }
 
 int split_operands(char* operands, char** first, char** second, char** third)
@@ -1339,11 +1347,13 @@ inline void find_and_replace(linked_node* current_node, char* s_replace, char* s
 	{
 		if(current_node == NULL)
 			break;
-		if(current_node->s_label)
+		if(current_node->s_label)	//replace labels
 			if(str_find_word(current_node->s_label, s_replace, &word_start, &word_end))
 				str_replace(&(current_node->s_label), s_new, word_start, word_end);
-		if(str_find_word(current_node->s_line, s_replace, &word_start, &word_end))
+		while(str_find_word(current_node->s_line, s_replace, &word_start, &word_end))	//replace operands and mnemonics
+		{
 			str_replace(&(current_node->s_line), s_new, word_start, word_end);
+		}
 		current_node = current_node->next;
 	}
 }
@@ -1473,7 +1483,7 @@ void write_mif(char* out_name, uint8_t* out_data, unsigned long prg_size)
 	fprintf(mif_file, "CONTENT\nBEGIN\n");
 	for(unsigned long address = 0; address < (prg_size / 2); ++address)
 	{
-		fprintf(mif_file, "%X : %04X;\n", address, ((out_data[address * 2 + 1] << 8) | out_data[address * 2]));
+		fprintf(mif_file, "%lX : %04X;\n", address, ((out_data[address * 2 + 1] << 8) | out_data[address * 2]));
 	}
 	fprintf(mif_file, "END;\n");
 	fclose(mif_file);
