@@ -895,6 +895,8 @@ void m_xec(linked_source* current_source, linked_instruction* current_instructio
 	char* operands = current_source->s_operands;
 	int operands_len = strlen(operands);
 	char* insides = NULL;
+	char* size = NULL;
+	unsigned int offset = 0;
 	unsigned long literal_val;
 	unsigned int l_field;
 	unsigned int reg_value;
@@ -908,19 +910,30 @@ void m_xec(linked_source* current_source, linked_instruction* current_instructio
 				if (operands[j] == ')') { 
 					operands[j] = '\0';
 					insides = operands + i + 1;
+					size = operands + j + 1;
 					break;
 				}
 			}
 			break;
 		}
 	}
-	
+
 	if (insides == NULL)
 	{
 		printf("Syntax error parsing operands of xec instruction at line: %lu in file %s\n", current_source->n_line, name_table[current_source->name_index]);
 		exit(1);
 	}
-	literal_val = label_or_immediate_value(operands, source_segment_head, current_source->n_line, current_source->name_index);
+
+	if(size[0])
+	{
+		if(size[0] != '[')
+		{
+			printf("Syntax error parsing range of xec instruction at line %lu in file %s\n", current_source->n_line, name_table[current_source->name_index]);
+			exit(1);
+		}
+		size = size + 1;
+		offset = atoi(size) - 1;
+	}
 	
 	char* first = strtok(insides, ",");
 	if (!first) 
@@ -930,24 +943,25 @@ void m_xec(linked_source* current_source, linked_instruction* current_instructio
 	}
 	char* second = strtok(NULL, ",");
 
+	literal_val = label_or_immediate_value(operands, source_segment_head, current_source->n_line, current_source->name_index);
 	reg_value = regliv_machine_val(first, current_source->n_line, current_source->name_index);
 	current_instruction->instruction_high = 0x80 | reg_value;	
 	if(second)	//uses IV as source
 	{
 		l_field = atoi(second);
 		current_instruction->instruction_low = ((uint8_t)l_field << 5) | ((uint8_t)literal_val & 0x1F);
-		if((current_instruction->address >> 6) != (literal_val >> 5))
+		if(((current_instruction->address >> 6) != (literal_val >> 5)) || ((literal_val >> 5) != ((literal_val + offset) >> 5)))
 			printf("Warning: XEC instruction at line %lu in file %s cannot jump over 32 word boundary!\n", current_source->n_line, name_table[current_source->name_index]);
 	}
 	else	//uses register as source
 	{
-		current_instruction->instruction_low = literal_val & 0xff;
-		if((current_instruction->address >> 9) != (literal_val >> 8))
+		current_instruction->instruction_low = (uint8_t)(literal_val & 0xff);
+		if(((current_instruction->address >> 9) != (literal_val >> 8)) || ((literal_val >> 8) != ((literal_val + offset) >> 8)))
 			printf("Warning: XEC instruction at line %lu in file %s cannot jump over 256 word boundary!\n", current_source->n_line, name_table[current_source->name_index]);
 	}
 	//debug output
 	if(debug_enable)
-		printf("%lX\t%X %X\tXEC\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, operands, first, second);
+		printf("%lX\t%X %X\tXEC\t%s %s %s [%u]\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, operands, first, second, offset + 1);
 }
 
 void m_nzt(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -972,7 +986,7 @@ void m_nzt(linked_source* current_source, linked_instruction* current_instructio
 	if(n_operands < 3)	//operand is a register
 	{
 		label_address = label_or_immediate_value(second, source_segment_head, current_source->n_line, current_source->name_index);
-		current_instruction->instruction_low = label_address & 0xFF;
+		current_instruction->instruction_low = (uint8_t)(label_address & 0xFF);
 		if((current_instruction->address >> 9) != (label_address >> 8))
 			printf("Warning: NZT instruction at line %lu in file %s cannot jump over 256 word boundary!\n", current_source->n_line, name_table[current_source->name_index]);
 	}
@@ -980,7 +994,7 @@ void m_nzt(linked_source* current_source, linked_instruction* current_instructio
 	{
 		label_address = label_or_immediate_value(third, source_segment_head, current_source->n_line, current_source->name_index);
 		l_field = atoi(second);
-		current_instruction->instruction_low = (l_field << 5) | (label_address & 0x1F);
+		current_instruction->instruction_low = (uint8_t)((l_field << 5) | (label_address & 0x1F));
 		if((current_instruction->address >> 6) != (label_address >> 5))
 			printf("Warning: NZT instruction at line %lu in file %s cannot jump over 32 word boundary!\n", current_source->n_line, name_table[current_source->name_index]);
 	}
@@ -1003,7 +1017,7 @@ void m_xmit(linked_source* current_source, linked_instruction* current_instructi
 	int n_operands = split_operands(current_source->s_operands, &first, &second, &third);
 	if(n_operands < 2)
 	{
-		fprintf(stderr, "Error parsing operands of NZT instruction at line: %lu in file %s\n", current_source->n_line, name_table[current_source->name_index]);
+		fprintf(stderr, "Error parsing operands of XMIT instruction at line: %lu in file %s\n", current_source->n_line, name_table[current_source->name_index]);
 		exit(1);
 	}
 	reg_value = regliv_machine_val(second, current_source->n_line, current_source->name_index);
@@ -1147,7 +1161,6 @@ inline unsigned long get_label_address(linked_source_segment* source_segment_hea
 //Returns the value of the label address or the parsed immediate
 unsigned long label_or_immediate_value(char* candidate, linked_source_segment* source_segment_head, unsigned long line_num, uint8_t name_index)
 {
-	
 	//is label or has keyword?
 	if((candidate[0] >= 0x41 && candidate[0] <= 0x5a) || (candidate[0] == '`'))
 	{
@@ -1174,6 +1187,32 @@ unsigned long label_or_immediate_value(char* candidate, linked_source_segment* s
 	if(candidate[0] == '%')
 	{
 		return strtol((candidate + 1), NULL, 2);
+	}
+	//is char
+	if(candidate[0] == '\'')
+	{
+		if(candidate[1] == '\\')
+		{
+			if(candidate[2] == 'S')
+				return ' ';
+			else if(candidate[2] == 'T')
+				return '\t';
+			else if(candidate[2] == 'N')
+				return '\n';
+			else if(candidate[2] == '\\')
+				return '\\';
+			else if(candidate[2] == '0')
+				return '\0';
+			else
+			{
+				fprintf(stderr, "Candidate [%s] did not match immediate char syntax at line: %lu in file %s\n", candidate, line_num, name_table[name_index]);
+				exit(1);
+			}	
+		}
+		else
+		{
+			return candidate[1];
+		}
 	}
 	//is decimal
 	if((0x30 <= candidate[0]) && (candidate[0] <= 0x39))

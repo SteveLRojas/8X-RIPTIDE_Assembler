@@ -31,7 +31,8 @@
 
 ; Address map for left bank:
 ; 0x0000 to 0x0FFF video memory (read write)
-; 0x1000 to 0xFFF3	unused
+; 0x1000 to 0xFFEF	reserved
+; 0xFFF0 to 0xFFF3	timer module
 ; 0xFFF4 to 0xFFF5 keyboard module (read write)
 ; 0xFFF6 to 0xFFF7 video mode register (write only)
 ; 0xFFF8 to 0xFFFB memory subsystem control registers	(write only)
@@ -55,18 +56,34 @@
 ; RS-232 module address map
 ; 0 data register
 ; 1 status register
-;	bit0	tx_overwrite bit (LSB)
-;	bit1	rx_overwrite bit
-;	bit2	tx_done bit
-;	bit3	rx_done bit
+;		bit 0: TX overwrite (LSB)
+;		bit 1: RX overwrite
+;		bit 2: TX ready
+;		bit 3: RX ready
+;		bit 4: TX queue empty
+;		bit 5: RX queue full
 
 ; keyboard module address map
 ; 0 data register
 ; 1 status register
-;	bit0	tx_overwrite bit (LSB)
-;	bit1	rx_overwrite bit
-;	bit2	tx_done bit
-;	bit3	rx_done bit
+;		bit 0: TX overwrite (LSB)
+;		bit 1: RX overwrite
+;		bit 2: TX ready
+;		bit 3: RX ready
+;		bit 4: TX queue empty
+;		bit 5: RX queue full
+
+; Timer module address map
+; 0 counter bits 7:0
+; 1 counter bits 15:8
+; 2 counter bits 23:16
+; 3 status
+;		bit 0: counter 7:0 not zero
+;		bit 1: counter 15:8 not zero
+;		bit 2: counter 23:16 not zero
+;		bit 3: counter 23:0 not zero
+;		bit 4: VSYNC
+;		bit 5: HSYNC
 
 ; Address map for right bank:
 ; 0x0000 to 0xFFFF	active data memory page (cached)
@@ -102,6 +119,11 @@ IO7 EQU LIV7
 
 ADDR_HIGH EQU IVL
 ADDR_LOW EQU IVR
+
+TIMER_COUNT_0 EQU $FFF0
+TIMER_COUNT_1 EQU $FFF1
+TIMER_COUNT_2 EQU $FFF2
+TIMER_STATUS EQU $FFF3
 
 KB_DATA EQU $FFF4
 KB_STATUS EQU $FFF5

@@ -22,6 +22,10 @@ Simple assembler for 8X300 and 8X-RIPTIDE CPUs
   * Fixed bug that caused incorrect rotation value for ADD, AND, and XOR instructions.  
   * Fixed bug that caused EQU defines to replace only the first instance in each line.  
   * Added error checking in MOVE, ADD, AND, and XOR instructions to ensure valid registers.  
+  * Added optional range specifier for XEC instruction.  
+   * Usage example: XEC KU_SWITCH (R6) [3].  
+   * This means that XEC will branch to one of 3 locations (R6 has value from 0 to 2).  
+  * Added support for char literals.  
 
 * Usage example:  
   * 8xasm test.asm output.bin  
