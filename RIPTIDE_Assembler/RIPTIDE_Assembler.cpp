@@ -52,16 +52,24 @@ typedef struct LINKED_BINARY_SEGMENT
 	struct LINKED_BINARY_SEGMENT* next;
 } linked_binary_segment;
 
-char* mnemonics[] = {"MOVE", "ADD", "AND", "XOR", "XEC", "NZT", "XMIT", "JMP", "CALL", "RET", "NOP", "ORG"};
+const char* mnemonics[] = {"MOVE", "ADD", "AND", "XOR", "XEC", "NZT", "XMIT", "JMP", "CALL", "RET", "NOP", "ORG"};
 #define N_MNEMONICS 12
-char include_string[] = "INCLUDE";
-char equ_string[] = "EQU";
-char high_string[] = "`HIGH";
-char low_string[] = "`LOW";
-char debug_string[] = "-DEBUG";
+const char include_string[] = "INCLUDE";
+const char equ_string[] = "EQU";
+const char high_string[] = "`HIGH";
+const char low_string[] = "`LOW";
+const char debug_string[] = "-DEBUG";
+const char asm_string[] = "-ASM";
+const char bin_string[] = "-BIN";
+const char coe_string[] = "-COE";
+const char mif_string[] = "-MIF";
 char include_name_buf[256];
 char* name_table[256];
 uint8_t debug_enable;
+unsigned int asm_index = 0;
+unsigned int bin_index = 0;
+unsigned int coe_index = 0;
+unsigned int mif_index = 0;
 
 void load_file(char* file_name, linked_node* head);
 void include_merge(linked_node* prev_node, linked_node* include_node, linked_node* new_head);
@@ -90,7 +98,7 @@ void free_instruction(linked_instruction* current_instruction);
 unsigned long get_binary_segment_end(linked_binary_segment* current_binary_segment);
 unsigned long get_binary_size(linked_binary_segment* binary_segment_head);
 void fill_buf(linked_binary_segment* binary_segment_head, uint8_t* buffer);
-int str_comp_partial(char* str1, char* str2);
+int str_comp_partial(const char* str1, const char* str2);
 void find_and_replace(linked_node* current_node, char* s_replace, char* s_new);
 int str_find_word(char* where, char* what, unsigned int* start, unsigned int* end);
 void str_replace(char** where, char* s_new, unsigned int word_start, unsigned int word_end);
@@ -129,26 +137,74 @@ int main(int argc, char** argv)
 	source_segment_head->offset = 0xffffffff;
 	source_segment_head->source_head = NULL;
 	
-	//Assert proper number of program arguments
-	if(argc < 2)
+	//Parse program arguments
+	int arg = 1;
+	char flag[5];
+	if(argc == 1)
 	{
-		fprintf(stderr, "Specify input file!\n");
+		printf("Usage: -ASM <source file> -BIN <output binary> -COE <output coe file> -MIF <output mif file> -DEBUG\n");
+		printf("-BIN, -COE, -MIF are optional, but at least one must be specified\n");
+		printf("-DEBUG is optional\n");
 		exit(1);
 	}
-	else if(argc < 3)
+	while(arg < argc)
 	{
-		fprintf(stderr, "Specify output file!\n");
+		if(argv[arg][0] == '-')
+		{
+			for(unsigned int d = 0; d < 4; ++d)
+			{
+				flag[d] = argv[arg][d];
+				if(flag[d] == 0x00)
+					break;
+				if((flag[d] > 0x60) & (flag[d] < 0x7b))
+					flag[d] = flag[d] - 0x20;
+			}
+			flag[4] = 0x00;
+			if(str_comp_partial(asm_string, flag))
+			{
+				asm_index = ++arg;
+			}
+			else if(str_comp_partial(bin_string, flag))
+			{
+				bin_index = ++arg;
+			}
+			else if(str_comp_partial(coe_string, flag))
+			{
+				coe_index = ++arg;
+			}
+			else if(str_comp_partial(mif_string, flag))
+			{
+				mif_index = ++arg;
+			}
+			else if(str_comp_partial(debug_string, flag))
+			{
+				debug_enable = 0xFF;
+			}
+			++arg;
+		}
+		else
+		{
+			asm_index = arg++;
+		}
+	}
+	if(arg > argc)
+	{
+		printf("Invalid arguments!\n");
 		exit(1);
 	}
-	//Load source file
-	load_file(argv[1], head);
+	if(asm_index == 0)
+	{
+		printf("No source file specified!\n");
+		exit(1);
+	}
+	if(bin_index == 0 && coe_index == 0 && mif_index == 0)
+	{
+		printf("No output file specified!\n");
+		exit(1);
+	}
 
-	//Check debug flag
-	if((argc > 3) && str_comp_partial(debug_string, argv[3]))
-		debug_enable = 0xFF;
-	else
-		debug_enable = 0;
-	
+	//Load source file
+	load_file(argv[asm_index], head);
 	
 	//Replace includes with source
 	linked_node* new_head = (linked_node*)malloc(sizeof(linked_node));
@@ -194,8 +250,8 @@ int main(int argc, char** argv)
 				exit(1);
 			}
 			
-			int buf_i = 0;
-			for(int i = start; i <= end; i++)
+			unsigned int buf_i = 0;
+			for(unsigned int i = start; i <= end; i++)
 			{
 				include_name_buf[buf_i] = line[i];
 				++buf_i;
@@ -393,6 +449,8 @@ int main(int argc, char** argv)
 			current_instruction = current_instruction->next;
 			current_instruction->next = NULL;
 			current_instruction->address = d;	//this is the byte address, not the word address
+			if(debug_enable && current_source->s_label)
+				printf("%s\n", current_source->s_label);
 			switch(current_source->mnemonic_index)
 			{
 				case 0:	//MOVE
@@ -482,17 +540,24 @@ int main(int argc, char** argv)
 	fill_buf(binary_segment_head, output_arr);
 	free_binary_segment(binary_segment_head);
 	
-	int written = 0;
-	FILE *f = fopen(argv[2], "wb");
-	while (written < prg_size){
-		written += fwrite(output_arr + written, sizeof(uint8_t), prg_size-written, f);
-		if (written == 0) {
-		    printf("Error writing output file!\n");
+	if(bin_index)
+	{
+		unsigned int written = 0;
+		FILE *f = fopen(argv[bin_index], "wb");
+		while (written < prg_size)
+		{
+			written += fwrite(output_arr + written, sizeof(uint8_t), prg_size - written, f);
+			if (written == 0)
+			{
+				printf("Error writing output file!\n");
+			}
 		}
+		fclose(f);
 	}
-	fclose(f);
-	write_mif(argv[2], output_arr, prg_size);
-	write_coe(argv[2], output_arr, prg_size);
+	if(mif_index)
+		write_mif(argv[mif_index], output_arr, prg_size);
+	if(coe_index)
+		write_coe(argv[coe_index], output_arr, prg_size);
 	free(output_arr);
 	return 0;
 }
@@ -723,8 +788,6 @@ void m_move(linked_source* current_source, linked_instruction* current_instructi
 		
 		source = regliv_machine_val(first, current_source->n_line, current_source->name_index);
 		dest = regliv_machine_val(second, current_source->n_line, current_source->name_index);
-		//source = strtol(first + 1, NULL, 8);
-		//dest = strtol(second + 1, NULL, 8);
 		rotate = 0;
 		
 		if (first[len_first - 1] == ')') 	// Rotate specified
@@ -743,7 +806,13 @@ void m_move(linked_source* current_source, linked_instruction* current_instructi
 	current_instruction->instruction_low = (rotate << 5) | (dest & 0x1F);
 	//debug output
 	if(debug_enable)
-		printf("%lX\t%X %X\tMOVE\t%s %s %s\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second, third);
+	{
+		printf("%lX\t%X %X\tMOVE\t%s %s ", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, first, second);
+		if(third)
+			printf("%s\n", third);
+		else
+			printf("\n");
+	}
 }
 
 void m_nop(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
@@ -778,8 +847,6 @@ void m_add(linked_source* current_source, linked_instruction* current_instructio
 	
 		source = regliv_machine_val(first, current_source->n_line, current_source->name_index);
 		dest = regliv_machine_val(second, current_source->n_line, current_source->name_index);
-		//source = strtol(first + 1, NULL, 8);
-		//dest = strtol(second + 1, NULL, 8);
 		rotate = 0;
 		
 		if (first[len_first - 1] == ')') 	// Rotate specified
@@ -824,8 +891,6 @@ void m_and(linked_source* current_source, linked_instruction* current_instructio
 	
 		source = regliv_machine_val(first, current_source->n_line, current_source->name_index);
 		dest = regliv_machine_val(second, current_source->n_line, current_source->name_index);
-		//source = strtol(first + 1, NULL, 8);
-		//dest = strtol(second + 1, NULL, 8);
 		rotate = 0;
 		
 		if (first[len_first - 1] == ')') 	// Rotate specified
@@ -871,8 +936,6 @@ void m_xor(linked_source* current_source, linked_instruction* current_instructio
 	
 		source = regliv_machine_val(first, current_source->n_line, current_source->name_index);
 		dest = regliv_machine_val(second, current_source->n_line, current_source->name_index);
-		//source = strtol(first + 1, NULL, 8);
-		//dest = strtol(second + 1, NULL, 8);
 		rotate = 0;
 		
 		if (first[len_first - 1] == ')') 	// Rotate specified
@@ -1050,6 +1113,8 @@ void m_jmp(linked_source* current_source, linked_instruction* current_instructio
 	immediate_value = label_or_immediate_value(operands, source_segment_head, current_source->n_line, current_source->name_index);
 	current_instruction->instruction_high = 0xE0 | ((immediate_value >> 8) & 0x1F);
 	current_instruction->instruction_low = immediate_value & 0xFF;
+	if((current_instruction->address >> 14) != (immediate_value >> 13))
+			printf("Warning: JMP instruction at line %lu in file %s cannot jump over 8192 word boundary!\n", current_source->n_line, name_table[current_source->name_index]);
 	//debug output
 	if(debug_enable)
 		printf("%lX\t%X %X\tJMP\t%s (%lX)\n", current_instruction->address >> 1, current_instruction->instruction_high, current_instruction->instruction_low, operands, immediate_value);
@@ -1367,7 +1432,7 @@ inline void fill_buf(linked_binary_segment* binary_segment_head, uint8_t* buffer
 	}
 }
 
-int str_comp_partial(char* str1, char* str2)
+int str_comp_partial(const char* str1, const char* str2)
 {
 	for(int i = 0; str1[i] && str2[i]; ++i)
 	{

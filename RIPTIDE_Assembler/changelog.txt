@@ -1,0 +1,28 @@
+Revision 1:
+Created log from readme.
+	Fixed bug that caused incorrect machine code for XEC instructions.  
+	Fixed bug that cause incorrect values for literals represented in decimal.  
+	Fixed one of the example files.  
+	Changed get_label_address to look for labels in all segments.  
+	Changed str_find_word to recognize comas and parentheses as word boundaries.  
+	Added content to example files.  
+	Fixed bug that caused incorrect segment addresses.  
+	Fixed bug that caused the program size to be calculated incorrectly.  
+	Added a function to generate MIF and COE files for Quartus and Vivado.  
+	Removed HIGH and LOW keywords and replaced them with \`HIGH and \`LOW.  
+		Labels can now begin with the words HIGH and LOW, and the new keywords can be applied to literals.  
+	Added warning messages for NZT and XEC instructions when the target is out of range.  
+	Added -DEBUG flag that can be used to enable debug output.  
+	Fixed bug that caused incorrect rotation value for ADD, AND, and XOR instructions.  
+	Fixed bug that caused EQU defines to replace only the first instance in each line.  
+	Added error checking in MOVE, ADD, AND, and XOR instructions to ensure valid registers.  
+	Added optional range specifier for XEC instruction.  
+		Usage example: XEC KU_SWITCH (R6) [3].  
+		This means that XEC will branch to one of 3 locations (R6 has value from 0 to 2).  
+	Added support for char literals.
+	
+Revision 2:
+	Added labels to debugging output.
+
+TODO:
+	Add error checking so that LIV and RIV cannot be used as regular registers. MOVE AUX, IO0 should throw an error.
