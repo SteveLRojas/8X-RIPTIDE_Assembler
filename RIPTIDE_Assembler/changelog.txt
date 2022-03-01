@@ -24,5 +24,6 @@ Created log from readme.
 Revision 2:
 	Added labels to debugging output.
 
-TODO:
-	Add error checking so that LIV and RIV cannot be used as regular registers. MOVE AUX, IO0 should throw an error.
+Revision 3:
+	Added code to properly check for overlap between segments (sorts segments before checking).
+	Split code into multiple files: 2 h files created.
