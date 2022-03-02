@@ -27,3 +27,4 @@ Revision 2:
 Revision 3:
 	Added code to properly check for overlap between segments (sorts segments before checking).
 	Split code into multiple files: 2 h files created.
+	Added hash map for labels and checks to make sure labels are not declared more than once.

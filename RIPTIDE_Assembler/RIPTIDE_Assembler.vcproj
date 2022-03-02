@@ -252,6 +252,10 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
+				RelativePath=".\label_hash.h"
+				>
+			</File>
+			<File
 				RelativePath=".\range_sort.h"
 				>
 			</File>

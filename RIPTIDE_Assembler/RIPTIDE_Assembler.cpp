@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "RIPTIDE_Assembler.h"
 #include "range_sort.h"
+#include "label_hash.h"
 
 int main(int argc, char** argv)
 {
@@ -233,6 +234,7 @@ int main(int argc, char** argv)
 	//create linked source segments
 	current_node = head->next;
 	current_source_segment = source_segment_head;
+	unsigned int num_labels = 0;
 	while(1)
 	{
 		if(current_node == NULL)
@@ -306,6 +308,7 @@ int main(int argc, char** argv)
 			{
 				current_source->s_label = (char*)malloc(sizeof(char) * (str_size(current_node->s_label)));
 				strcpy(current_source->s_label, current_node->s_label);
+				++num_labels;
 			}
 			else
 				current_source->s_label = NULL;
@@ -317,6 +320,9 @@ int main(int argc, char** argv)
 	//free memory
 	current_node = head;
 	free_node(current_node);
+
+	//build label map
+	build_label_map(source_segment_head, num_labels);
 
 	//create linked binary segments
 	current_source_segment = source_segment_head;
@@ -393,6 +399,9 @@ int main(int argc, char** argv)
 	//free source segments
 	current_source_segment = source_segment_head;
 	free_source_segment(current_source_segment);
+
+	//free label map
+	free_label_map();
 
 	//complete binary segments
 	current_binary_segment = binary_segment_head;
