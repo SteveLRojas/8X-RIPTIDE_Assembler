@@ -77,7 +77,7 @@ void build_label_map(linked_source_segment* source_segment_head, unsigned int nu
 	return;
 }
 
-unsigned long get_label_value(char* label, unsigned int n_line, uint8_t name_index)
+unsigned long get_label_value(char* label, unsigned long n_line, uint8_t name_index)
 {
 	unsigned int index = (unsigned int)(hash((unsigned char*)label) % (unsigned long)label_map_size);
 	if(label_map[index].key)

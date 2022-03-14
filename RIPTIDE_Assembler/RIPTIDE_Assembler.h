@@ -83,7 +83,7 @@ void p_error(linked_source* current_source, linked_instruction* current_instruct
 long regliv_machine_val(char* operand, unsigned long line_num, uint8_t name_index);
 void remove_spaces(char* s);
 int split_operands(char* operands, char** first, char** second, char** third);
-unsigned long get_label_address(linked_source_segment* source_segment_head, char* s_label, unsigned long line_num, uint8_t name_index);
+//unsigned long get_label_address(linked_source_segment* source_segment_head, char* s_label, unsigned long line_num, uint8_t name_index);
 unsigned long label_or_immediate_value(char* candidate, linked_source_segment* source_segment_head, unsigned long line_num, uint8_t name_index);
 void free_node(linked_node* current_node);
 void free_source_segment(linked_source_segment* current_source_segment);
