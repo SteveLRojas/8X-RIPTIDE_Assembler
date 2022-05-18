@@ -1,3 +1,4 @@
+#define true 1
 typedef struct S_RANGE
 {
 	unsigned long start_address;

@@ -11,9 +11,9 @@ unsigned int label_map_size;
 unsigned long hash(unsigned char* str)
 {
     unsigned long hash = 5381;
-    int c;
+    unsigned char c;
 
-    while (c = *str++)
+    while ((c = *str++))
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
     return hash;

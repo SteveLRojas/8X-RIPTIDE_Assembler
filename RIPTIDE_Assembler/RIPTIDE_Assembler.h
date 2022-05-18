@@ -1,6 +1,6 @@
 #include <stdio.h> 
 #include <stdlib.h> 
-#include "stdint.h"
+#include <stdint.h>
 #include <string.h>
 
 typedef struct LINKED_NODE
@@ -80,7 +80,7 @@ void m_jmp(linked_source* current_source, linked_instruction* current_instructio
 void m_call(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head);
 void m_ret(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head);
 void p_error(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head);
-long regliv_machine_val(char* operand, unsigned long line_num, uint8_t name_index);
+unsigned long regliv_machine_val(char* operand, unsigned long line_num, uint8_t name_index);
 void remove_spaces(char* s);
 int split_operands(char* operands, char** first, char** second, char** third);
 //unsigned long get_label_address(linked_source_segment* source_segment_head, char* s_label, unsigned long line_num, uint8_t name_index);
