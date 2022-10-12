@@ -33,3 +33,6 @@ Revision 4:
 	Converted source files to C.
 	Created makefile.
 	
+Revision 5:
+    Added support for macros.
+    

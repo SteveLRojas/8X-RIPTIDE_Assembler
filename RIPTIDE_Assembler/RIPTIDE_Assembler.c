@@ -4,8 +4,10 @@
 
 int main(int argc, char** argv)
 {
-	linked_node* head = (linked_node*)malloc(sizeof(linked_node));
-	linked_node* current_node = head;
+	linked_line* head = (linked_line*)malloc(sizeof(linked_line));
+	linked_line* current_node = head;
+    linked_macro* macro_head = (linked_macro*)malloc(sizeof(linked_macro));
+	linked_macro* current_macro = macro_head;
 	linked_binary_segment* binary_segment_head = (linked_binary_segment*)malloc(sizeof(linked_binary_segment));
 	linked_binary_segment* current_binary_segment = binary_segment_head;
 	linked_source_segment* source_segment_head = (linked_source_segment*)malloc(sizeof(linked_source_segment));
@@ -102,8 +104,8 @@ int main(int argc, char** argv)
 	load_file(argv[asm_index], head);
 	
 	//Replace includes with source
-	linked_node* new_head = (linked_node*)malloc(sizeof(linked_node));
-	linked_node* prev_node = NULL;
+	linked_line* new_head = (linked_line*)malloc(sizeof(linked_line));
+	linked_line* prev_node = NULL;
 	new_head->n_line = 0xffffffff;
 	new_head->s_label = NULL;
 	new_head->s_line = NULL;
@@ -181,6 +183,254 @@ int main(int argc, char** argv)
 			current_node = prev_node;
 		}
 	}
+	
+    //build list of macros
+	linked_line* prev_macro_line = NULL;
+	linked_line* current_macro_line = NULL;
+	current_node = head;
+	while(1)
+	{
+		prev_node = current_node;
+		current_node = current_node->next;
+		if(current_node == NULL)
+			break;
+		if(current_node->s_label && str_comp_partial(current_node->s_label, macro_string))	//found start of a macro
+		{
+			//create new macro node
+			current_macro->next = (linked_macro*)malloc(sizeof(linked_macro));
+			current_macro = current_macro->next;
+			current_macro->next = NULL;
+			//fill line number and file fields
+			current_macro->n_line = current_node->n_line;
+			current_macro->name_index = current_node->name_index;
+			//fill macro name and formal parameters fields
+			current_macro->macro_name = current_node->s_line;
+			char* formal_parameters = current_macro->macro_name;
+			while(1)	//find first space after macro name to terminate the name string
+			{
+				if(*formal_parameters == 0x00)
+				{
+					formal_parameters = NULL;	//found null before any parameters...
+					break;
+				}
+				if(*formal_parameters == ' ' || *formal_parameters == '\t')
+				{
+					*formal_parameters = 0x00;	//terminate macro name
+					++formal_parameters;
+					while(1)	//look for the start of the formal parameters
+					{
+						if(*formal_parameters == 0x00)
+						{
+							formal_parameters = NULL;	//no parameters
+							break;
+						}
+						if(*formal_parameters != ' ' && *formal_parameters != '\t')	//found start of parameters
+						{
+							break;
+						}
+						++formal_parameters;
+					}
+					break;
+				}
+				++formal_parameters;
+			}
+			current_macro->formal_parameters = formal_parameters;
+			//create dummy line head
+			current_macro->line_head = (linked_line*)malloc(sizeof(linked_line));
+			current_macro_line = current_macro->line_head;
+			current_macro_line->name_index = 0;
+			current_macro_line->s_label = NULL;
+			current_macro_line->s_line = NULL;
+			//attach lines to macro
+			current_macro_line->next = current_node->next;
+			//find end of macro
+			while(1)
+			{
+				prev_macro_line = current_macro_line;
+				current_macro_line = current_macro_line->next;
+				if(current_macro_line == NULL)
+				{
+					printf("Could not find end of macro at line %lu in file %s\n", current_macro->n_line, name_table[current_macro->name_index]);
+					exit(1);
+				}
+				if(current_macro_line->s_label && str_comp_partial(current_macro_line->s_label, endmacro_string))	//found end of macro
+				{
+					//terminate macro line list and detach from main list
+					prev_node->next = current_macro_line->next;
+					prev_macro_line->next = NULL;
+					//free macro start and end
+					//for the macro start we still need the line and next, since those now belong to the macro
+					free(current_node->s_label);
+					free(current_node);
+					current_node = prev_node;
+					//for the macro end we only need the next, since it still forms part of the main list
+					free(current_macro_line->s_label);
+					free(current_macro_line->s_line);
+					free(current_macro_line);
+					break;
+				}
+			}
+		}
+	}
+
+	//print macros
+	if(debug_enable)
+	{
+		current_macro = macro_head;
+		while(1)
+		{
+			current_macro = current_macro->next;
+			if(current_macro == NULL)
+				break;
+			printf("%lu ", current_macro->n_line);
+			printf("MACRO ");
+			printf("    %s ", current_macro->macro_name);
+			printf("%s\n", current_macro->formal_parameters);
+			current_node = current_macro->line_head;
+			while(1)
+			{
+				current_node = current_node->next;
+				if(current_node == NULL)
+					break;
+				printf("%lu    ", current_node->n_line);
+				if(current_node->s_label)
+					printf("%s", current_node->s_label);
+				printf("    %s\n", current_node->s_line);
+			}
+		}
+	}
+
+	//expand macros
+	linked_line* macro_copy_line_head = NULL;
+	linked_line* current_macro_copy_line = NULL;
+	current_macro = macro_head;
+	while(1)
+	{
+		current_macro = current_macro->next;
+		if(current_macro == NULL)
+			break;
+		char* macro_name = current_macro->macro_name;
+		char* formal_params_copy = NULL;
+		if(current_macro->formal_parameters)
+			formal_params_copy = (char*)malloc(str_size(current_macro->formal_parameters));	//will need copy of macro params
+		//find macro instances
+		current_node = head;
+		while(1)
+		{
+			prev_node = current_node;
+			current_node = current_node->next;
+			if(current_node == NULL)
+				break;
+			char* s_line = current_node->s_line;	//we can modify this only if it is a macro instance
+			if(str_comp_partial(s_line, macro_name))
+			{
+				printf("Found instance of macro %s in line %lu of file %s\n", macro_name, current_node->n_line, name_table[current_node->name_index]);
+				//create copy of macro code
+				macro_copy_line_head = (linked_line*)malloc(sizeof(linked_line));
+				current_macro_copy_line = macro_copy_line_head;
+				current_macro_line = current_macro->line_head;
+				while(1)
+				{
+					current_macro_line = current_macro_line->next;
+					if(current_macro_line == NULL)
+						break;
+					//create new line
+					current_macro_copy_line->next = (linked_line*)malloc(sizeof(linked_line));
+					current_macro_copy_line = current_macro_copy_line->next;
+					//copy line data
+					current_macro_copy_line->s_line = (char*)malloc(str_size(current_macro_line->s_line));
+					strcpy(current_macro_copy_line->s_line, current_macro_line->s_line);
+					current_macro_copy_line->s_label = NULL;
+					if(current_macro_line->s_label)
+					{
+						current_macro_copy_line->s_label = (char*)malloc(str_size(current_macro_line->s_label));
+						strcpy(current_macro_copy_line->s_label, current_macro_line->s_label);
+					}
+					current_macro_copy_line->n_line = current_macro_line->n_line;
+					current_macro_copy_line->name_index = current_macro_line->name_index;
+					current_macro_copy_line->mnemonic_index = current_macro_line->mnemonic_index;
+					current_macro_copy_line->mnemonic_end = current_macro_line->mnemonic_index;
+					current_macro_copy_line->next = NULL;
+				}
+				//find and replace formal parameters
+				if(current_macro->formal_parameters)	//the thing might not have any parameters
+				{
+					strcpy(formal_params_copy, current_macro->formal_parameters);
+					remove_spaces(formal_params_copy);
+					char* current_macro_param = formal_params_copy;	//this is what we want to replace
+					char* current_macro_param_end = current_macro_param;
+					char* current_instance_param = s_line;	//this is what we want to replace it with
+					char* current_instance_param_end = current_instance_param;
+					while(*current_instance_param_end)	//the first thing in the line is the macro name, skip
+					{
+						if(*current_instance_param_end == ' ')
+						{
+							*current_instance_param_end = 0x00;
+							++current_instance_param_end;
+							break;
+						}
+						++current_instance_param_end;
+					}
+					current_instance_param = current_instance_param_end;
+					while(*current_macro_param && *current_instance_param)
+					{
+						//find end of current_macro_param
+						while(*current_macro_param_end)
+						{
+							if(*current_macro_param_end == ',')
+							{
+								*current_macro_param_end = 0x00;
+								++current_macro_param_end;
+								break;
+							}
+							++current_macro_param_end;
+						}
+						while(*current_instance_param_end)
+						{
+							if(*current_instance_param_end == ',')
+							{
+								*current_instance_param_end = 0x00;
+								++current_instance_param_end;
+								break;
+							}
+							++current_instance_param_end;
+						}
+						find_and_replace(macro_copy_line_head->next, current_macro_param, current_instance_param);
+						current_instance_param = current_instance_param_end;	//advance to next instance param
+						current_macro_param = current_macro_param_end;	//advance to next macro param (if any)
+					}
+					//check that instance has the right number of params
+					if(*current_macro_param || *current_instance_param)
+					{
+						printf("Warning: Macro instance at line %lu in file %s does not match macro definition.\n", current_node->n_line, name_table[current_node->name_index]);
+					}
+				}
+				//attach macro copy to main list
+				prev_node->next = macro_copy_line_head->next;
+				current_macro_copy_line->next = current_node->next;
+				//free copy line head
+				free(macro_copy_line_head);
+				//keep macro reference label (if any)
+				if(current_node->s_label)
+                {
+                    if(!prev_node->next->s_label)
+                        prev_node->next->s_label = current_node->s_label;
+                    else
+                        free(current_node->s_label);
+                }
+                //free current node
+				free(current_node->s_line);
+				free(current_node);
+				current_node = prev_node;
+			}
+		}
+		//free formal_params_copy
+		free(formal_params_copy);
+	}
+
+	//free macros
+	current_macro = macro_head;
+	free_macro(current_macro);
 		
 	//print lines
 	if(debug_enable)
@@ -471,9 +721,9 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void load_file(char* file_name, linked_node* head)
+void load_file(char* file_name, linked_line* head)
 {
-	linked_node* current_node = head;
+	linked_line* current_node = head;
 	unsigned int line_start = 0;
 	unsigned int line_end = 0;
 	unsigned int label_end;
@@ -568,7 +818,7 @@ void load_file(char* file_name, linked_node* head)
 					}
 					//create new node
 					floating_label_size = 0;	//this line has its own label
-					current_node->next = (linked_node*)malloc(sizeof(linked_node));
+					current_node->next = (linked_line*)malloc(sizeof(linked_line));
 					current_node = current_node->next;
 					current_node->next = NULL;
 					current_node->n_line = current_source_line;
@@ -623,7 +873,7 @@ void load_file(char* file_name, linked_node* head)
 						}
 					}
 					//create new node
-					current_node->next = (linked_node*)malloc(sizeof(linked_node));
+					current_node->next = (linked_line*)malloc(sizeof(linked_line));
 					current_node = current_node->next;
 					current_node->next = NULL;
 					current_node->n_line = current_source_line;
@@ -659,9 +909,9 @@ void load_file(char* file_name, linked_node* head)
 	fclose(fp_in);
 }
 
-void include_merge(linked_node* prev_node, linked_node* include_node, linked_node* new_head)
+void include_merge(linked_line* prev_node, linked_line* include_node, linked_line* new_head)
 {
-	linked_node* current_node = new_head;
+	linked_line* current_node = new_head;
 	prev_node->next = new_head->next;
 	while(1)
 	{
@@ -752,7 +1002,7 @@ void m_add(linked_source* current_source, linked_instruction* current_instructio
 	}
 	if(n_operands == 2)	//register to register or register to IV bus address
 	{
-		int len_first = strlen(first);
+		unsigned int len_first = (unsigned int)strlen(first);
 	
 		source = regliv_machine_val(first, current_source->n_line, current_source->name_index);
 		dest = regliv_machine_val(second, current_source->n_line, current_source->name_index);
@@ -760,7 +1010,7 @@ void m_add(linked_source* current_source, linked_instruction* current_instructio
 		
 		if (first[len_first - 1] == ')') 	// Rotate specified
 		{
-			rotate = strtol(first + len_first - 2, NULL, 10) & 7;
+			rotate = (unsigned long)strtol(first + len_first - 2, NULL, 10) & 7;
 		}	
 	}
 	else	//register to IV bus, IV bus to register, or IV bus to IV bus
@@ -796,7 +1046,7 @@ void m_and(linked_source* current_source, linked_instruction* current_instructio
 	}
 	if(n_operands == 2)	//register to register or register to IV bus address
 	{
-		int len_first = strlen(first);
+		unsigned int len_first = (unsigned int)strlen(first);
 	
 		source = regliv_machine_val(first, current_source->n_line, current_source->name_index);
 		dest = regliv_machine_val(second, current_source->n_line, current_source->name_index);
@@ -804,7 +1054,7 @@ void m_and(linked_source* current_source, linked_instruction* current_instructio
 		
 		if (first[len_first - 1] == ')') 	// Rotate specified
 		{
-			rotate = strtol(first + len_first - 2, NULL, 10) & 7;
+			rotate = (unsigned long)strtol(first + len_first - 2, NULL, 10) & 7;
 		}	
 	}
 	else	//register to IV bus, IV bus to register, or IV bus to IV bus
@@ -840,7 +1090,7 @@ void m_xor(linked_source* current_source, linked_instruction* current_instructio
 	}
 	if(n_operands == 2)	//register to register or register to IV bus address
 	{
-		int len_first = strlen(first);
+		unsigned int len_first = (unsigned int)strlen(first);
 	
 		source = regliv_machine_val(first, current_source->n_line, current_source->name_index);
 		dest = regliv_machine_val(second, current_source->n_line, current_source->name_index);
@@ -848,7 +1098,7 @@ void m_xor(linked_source* current_source, linked_instruction* current_instructio
 		
 		if (first[len_first - 1] == ')') 	// Rotate specified
 		{
-			rotate = strtol(first + len_first - 2, NULL, 10) & 7;
+			rotate = (unsigned long)strtol(first + len_first - 2, NULL, 10) & 7;
 		}	
 	}
 	else	//register to IV bus, IV bus to register, or IV bus to IV bus
@@ -868,7 +1118,7 @@ void m_xor(linked_source* current_source, linked_instruction* current_instructio
 void m_xec(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head)
 {
 	char* operands = current_source->s_operands;
-	int operands_len = strlen(operands);
+	unsigned int operands_len = (unsigned int)strlen(operands);
 	char* insides = NULL;
 	char* size = NULL;
 	unsigned int offset = 0;
@@ -1152,17 +1402,17 @@ unsigned long label_or_immediate_value(char* candidate, linked_source_segment* s
 	//is octal
 	if(candidate[0] == '@')
 	{
-		return strtol((candidate + 1), NULL, 8);
+		return (unsigned long)strtol((candidate + 1), NULL, 8);
 	}
 	//is hex
 	if(candidate[0] == '$')
 	{
-		return strtol((candidate + 1), NULL, 16);
+		return (unsigned long)strtol((candidate + 1), NULL, 16);
 	}
 	//is binary
 	if(candidate[0] == '%')
 	{
-		return strtol((candidate + 1), NULL, 2);
+		return (unsigned long)strtol((candidate + 1), NULL, 2);
 	}
 	//is char
 	if(candidate[0] == '\'')
@@ -1193,7 +1443,7 @@ unsigned long label_or_immediate_value(char* candidate, linked_source_segment* s
 	//is decimal
 	if((0x30 <= candidate[0]) && (candidate[0] <= 0x39))
 	{
-		return strtol(candidate, NULL, 10);
+		return (unsigned long)strtol(candidate, NULL, 10);
 	}
 	// throw error
 	else
@@ -1203,9 +1453,9 @@ unsigned long label_or_immediate_value(char* candidate, linked_source_segment* s
 	}
 }
 
-inline void free_node(linked_node* current_node)
+inline void free_node(linked_line* current_node)
 {
-	linked_node* next_node = NULL;
+	linked_line* next_node = NULL;
 	while(1)
 	{
 		if(current_node == NULL)
@@ -1217,6 +1467,21 @@ inline void free_node(linked_node* current_node)
 			free(current_node->s_line);
 		free(current_node);
 		current_node = next_node;
+	}
+}
+
+inline void free_macro(linked_macro* current_macro)
+{
+	linked_macro* next_macro = NULL;
+	while(1)
+	{
+		if(current_macro == NULL)
+			break;
+		next_macro = current_macro->next;
+		free_node(current_macro->line_head);
+		free(current_macro->macro_name);	//this also frees the formal parameters
+		free(current_macro);
+		current_macro = next_macro;
 	}
 }
 
@@ -1348,7 +1613,7 @@ int str_comp_partial(const char* str1, const char* str2)
 	return 1;
 }
 
-inline void find_and_replace(linked_node* current_node, char* s_replace, char* s_new)
+inline void find_and_replace(linked_line* current_node, char* s_replace, char* s_new)
 {
 	unsigned int word_start;
 	unsigned int word_end;
@@ -1401,7 +1666,7 @@ inline void str_replace(char** where, char* s_new, unsigned int word_start, unsi
 	char* old_string = *where;
 	unsigned int old_size = str_size(*where);
 	unsigned int pre_length = word_start;
-	unsigned int word_length = strlen(s_new);
+	unsigned int word_length = (unsigned int)strlen(s_new);
 	unsigned int post_size = old_size - word_end;
 	unsigned int new_size = pre_length + word_length + post_size;
 	char* new_string = (char*)malloc(new_size);

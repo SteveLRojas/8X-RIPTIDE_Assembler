@@ -3,16 +3,27 @@
 #include <stdint.h>
 #include <string.h>
 
-typedef struct LINKED_NODE
+//Represents a line of the source code after initial parsing.
+typedef struct LINKED_LINE
 {
 	char* s_label;			//label portion of source line (if any)
 	char* s_line;			//mnemonic or key word portion of source line (always present)
 	unsigned long n_line;		//source line number for printing and error mesage use only
-	uint8_t name_index;
+	uint8_t name_index;		//identifies the file that contains this line of source code
 	unsigned int mnemonic_index;	//number that uniquely identifies a mnemonic or key word
 	unsigned int mnemonic_end;	//marks end of mnemonic and start of operands
-	struct LINKED_NODE* next;
-} linked_node;
+	struct LINKED_LINE* next;
+} linked_line;
+
+typedef struct LINKED_MACRO
+{
+	linked_line* line_head;
+	char* macro_name;
+	char* formal_parameters;
+	unsigned long n_line;
+	uint8_t name_index;
+	struct LINKED_MACRO* next;
+} linked_macro;
 
 typedef struct LINKED_SOURCE
 {
@@ -50,6 +61,8 @@ typedef struct LINKED_BINARY_SEGMENT
 const char* mnemonics[] = {"MOVE", "ADD", "AND", "XOR", "XEC", "NZT", "XMIT", "JMP", "CALL", "RET", "NOP", "ORG"};
 #define N_MNEMONICS 12
 const char include_string[] = "INCLUDE";
+const char macro_string[] = "MACRO";
+const char endmacro_string[] = "ENDMACRO";
 const char equ_string[] = "EQU";
 const char high_string[] = "`HIGH";
 const char low_string[] = "`LOW";
@@ -66,8 +79,8 @@ unsigned int bin_index = 0;
 unsigned int coe_index = 0;
 unsigned int mif_index = 0;
 
-void load_file(char* file_name, linked_node* head);
-void include_merge(linked_node* prev_node, linked_node* include_node, linked_node* new_head);
+void load_file(char* file_name, linked_line* head);
+void include_merge(linked_line* prev_node, linked_line* include_node, linked_line* new_head);
 void m_move(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head);
 void m_nop(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head);
 void m_add(linked_source* current_source, linked_instruction* current_instruction, linked_source_segment* source_segment_head);
@@ -85,7 +98,8 @@ void remove_spaces(char* s);
 int split_operands(char* operands, char** first, char** second, char** third);
 //unsigned long get_label_address(linked_source_segment* source_segment_head, char* s_label, unsigned long line_num, uint8_t name_index);
 unsigned long label_or_immediate_value(char* candidate, linked_source_segment* source_segment_head, unsigned long line_num, uint8_t name_index);
-void free_node(linked_node* current_node);
+void free_node(linked_line* current_node);
+void free_macro(linked_macro* current_macro);
 void free_source_segment(linked_source_segment* current_source_segment);
 void free_source(linked_source* current_source);
 void free_binary_segment(linked_binary_segment* current_binary_segment);
@@ -94,7 +108,7 @@ unsigned long get_binary_segment_end(linked_binary_segment* current_binary_segme
 unsigned long get_binary_size(linked_binary_segment* binary_segment_head);
 void fill_buf(linked_binary_segment* binary_segment_head, uint8_t* buffer);
 int str_comp_partial(const char* str1, const char* str2);
-void find_and_replace(linked_node* current_node, char* s_replace, char* s_new);
+void find_and_replace(linked_line* current_node, char* s_replace, char* s_new);
 int str_find_word(char* where, char* what, unsigned int* start, unsigned int* end);
 void str_replace(char** where, char* s_new, unsigned int word_start, unsigned int word_end);
 unsigned int str_size(char* s_input);
