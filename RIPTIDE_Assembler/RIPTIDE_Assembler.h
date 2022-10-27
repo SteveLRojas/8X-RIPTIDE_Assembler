@@ -108,6 +108,7 @@ unsigned long get_binary_segment_end(linked_binary_segment* current_binary_segme
 unsigned long get_binary_size(linked_binary_segment* binary_segment_head);
 void fill_buf(linked_binary_segment* binary_segment_head, uint8_t* buffer);
 int str_comp_partial(const char* str1, const char* str2);
+int str_comp_word(const char* str1, const char* str2);
 void find_and_replace(linked_line* current_node, char* s_replace, char* s_new);
 int str_find_word(char* where, char* what, unsigned int* start, unsigned int* end);
 void str_replace(char** where, char* s_new, unsigned int word_start, unsigned int word_end);

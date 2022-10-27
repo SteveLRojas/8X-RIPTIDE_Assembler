@@ -1,3 +1,33 @@
+//                     /\         /\__
+//                   // \       (  0 )_____/\            __
+//                  // \ \     (vv          o|          /^v\
+//                //    \ \   (vvvv  ___-----^        /^^/\vv\
+//              //  /     \ \ |vvvvv/               /^^/    \v\
+//             //  /       (\\/vvvv/              /^^/       \v\
+//            //  /  /  \ (  /vvvv/              /^^/---(     \v\
+//           //  /  /    \( /vvvv/----(O        /^^/           \v\
+//          //  /  /  \  (/vvvv/               /^^/             \v|
+//        //  /  /    \( vvvv/                /^^/               ||
+//       //  /  /    (  vvvv/                 |^^|              //
+//      //  / /    (  |vvvv|                  /^^/            //
+//     //  / /   (    \vvvvv\          )-----/^^/           //
+//    // / / (          \vvvvv\            /^^^/          //
+//   /// /(               \vvvvv\        /^^^^/          //
+//  ///(              )-----\vvvvv\    /^^^^/-----(      \\
+// //(                        \vvvvv\/^^^^/               \\
+///(                            \vvvv^^^/                 //
+//                                \vv^/         /        //
+//                                             /<______//
+//                                            <<<------/
+//                                             \<
+//                                              \
+//**************************************************
+//* RIPTIDE_Assembler.c             SOURCE FILE    *
+//* Copyright (C) 2019 Esteban Looser-Rojas.       *
+//* Contains assembler program for 8X300, 8X305,   *
+//* 8X-RIPTIDE, RIPTIDE-II, and RIPTIDE-III CPUs.  *
+//**************************************************
+
 #include "RIPTIDE_Assembler.h"
 #include "range_sort.h"
 #include "label_hash.h"
@@ -322,7 +352,7 @@ int main(int argc, char** argv)
 			if(current_node == NULL)
 				break;
 			char* s_line = current_node->s_line;	//we can modify this only if it is a macro instance
-			if(str_comp_partial(s_line, macro_name))
+			if(str_comp_word(s_line, macro_name))
 			{
 				printf("Found instance of macro %s in line %lu of file %s\n", macro_name, current_node->n_line, name_table[current_node->name_index]);
 				//create copy of macro code
@@ -672,15 +702,6 @@ int main(int argc, char** argv)
 	}
 
 	//check for segment overlap
-	/*current_binary_segment = binary_segment_head;
-	while(1)
-	{
-		current_binary_segment = current_binary_segment->next;
-		if((current_binary_segment == NULL) || (current_binary_segment->next == NULL))
-			break;
-		if(current_binary_segment->end_address >= current_binary_segment->next->start_address)
-			printf("Warning: Segment at offset %lu overlaps with previous segment.\n", (current_binary_segment->next->start_address) / 2);
-	}*/
 	build_range_table(binary_segment_head, num_segments);
 	print_range_table(num_segments);
 	check_range_table(num_segments);
@@ -1361,30 +1382,6 @@ int split_operands(char* operands, char** first, char** second, char** third)
 		return 4;
 }
 
-/*inline unsigned long get_label_address(linked_source_segment* source_segment_head, char* s_label, unsigned long line_num, uint8_t name_index)
-{
-	unsigned long offset;
-	linked_source_segment* current_source_segment = source_segment_head->next;
-	while(current_source_segment)
-	{
-		offset = current_source_segment->offset;
-		linked_source* current_source = current_source_segment->source_head->next;
-		while(current_source)
-		{
-			if(current_source->s_label)
-				if(!strcmp(s_label, current_source->s_label))
-					return offset;
-			current_source = current_source->next;
-			offset = offset + 1;
-		}
-		current_source_segment = current_source_segment->next;
-	}
-
-	fprintf(stderr, "Unable to find label [%s] at line: %lu in file %s\n", s_label, line_num, name_table[name_index]);
-	exit(1);
-}*/
-
-
 //Returns the value of the label address or the parsed immediate
 unsigned long label_or_immediate_value(char* candidate, linked_source_segment* source_segment_head, unsigned long line_num, uint8_t name_index)
 {
@@ -1611,6 +1608,21 @@ int str_comp_partial(const char* str1, const char* str2)
 			return 0;
 	}
 	return 1;
+}
+
+int str_comp_word(const char* str1, const char* str2)
+{
+	unsigned int i;
+	for(i = 0; str1[i] && str2[i]; ++i)
+	{
+		if(str1[i] != str2[i])
+			return 0;
+	}
+	
+	char next = str1[i] | str2[i];
+	if(next == 0x00 || next == '\t' || next == ' ')
+		return 1;
+	return 0;
 }
 
 inline void find_and_replace(linked_line* current_node, char* s_replace, char* s_new)
