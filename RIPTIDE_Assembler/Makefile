@@ -1,18 +1,20 @@
 CFLAGS=-std=c99 -pedantic -Wall -Wextra -Wconversion -D_XOPEN_SOURCE -march=native -O3
-LDLIBS=-lm
+LDFLAGS=-lm
+TARGET = ./bin/8xasm
 
 .PHONY: all
+all: $(TARGET)
 
-all: 8xasm.exe
 
-8xasm.exe: RIPTIDE_Assembler.o
+TARGET_OBJS = RIPTIDE_Assembler.o
 
-%.exe:
-	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
+$(TARGET): $(TARGET_OBJS)
+	mkdir -p $(dir $@)
+	$(CC) $(TARGET_OBJS) $(CFLAGS) $(LDFLAGS) -o $@
 
-lib%.a: %.o
-	$(AR) -rs $@ $^
+%.o: %.c
+	$(CC) -c $(CFLAGS) $< -o $@
 
 .PHONY: clean
 clean:
-	$(RM) -- *.exe *.a *.o
+	$(RM) -f $(TARGET) *.o
