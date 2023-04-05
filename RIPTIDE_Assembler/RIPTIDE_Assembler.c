@@ -54,6 +54,10 @@ int main(int argc, char** argv)
 	head->n_line = 0xffffffff;
 	head->s_label = NULL;
 	head->s_line = NULL;
+
+	macro_head->line_head = NULL;
+	macro_head->macro_name = NULL;
+	macro_head->formal_parameters = NULL;
 	
 	binary_segment_head->start_address = 0xffffffff;
 	binary_segment_head->end_address = 0xffffffff;
