@@ -36,3 +36,4 @@ Revision 4:
 Revision 5:
     Added support for macros.
     Fixed bug in macro processor.
+    Fixed bug in macro processor that caused segfault.
