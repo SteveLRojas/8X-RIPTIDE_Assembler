@@ -102,6 +102,7 @@ III
 - buss
 - Return opcode 6 -> 5
 - Neither the OVF register nor the I/O bus [can] be used... 
+- Bit order is flipped 15->0
 
 III/II
 - clarify NZT stuff (address/program, generic example)
