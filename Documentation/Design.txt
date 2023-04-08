@@ -1,0 +1,109 @@
+Preface/Introduction
+
+Assembler Features
+- Macro processing
+- 3 distinct output formats
+- Include files
+- Generate DEBUG assembly listing(?)
+- Assembler Warnings/Errors
+- Label quirkyness
+
+Command Line Interface 
+- Arguments
+- File Formats
+
+Code Syntax
+- NOP
+	- Syntax - NOP
+- MOVE
+	- Syntax - MOVE S(R), D
+		- S = source
+		- R = rotate
+		- D = destination
+	- Syntax - MOVE S, L, D 
+		- S = source
+		- L = length
+		- D = destination
+- ADD 
+	- Syntax - ADD S(R), D
+		- S = source
+		- R = rotate
+		- D = destination
+	- Syntax - ADD S, L, D 
+		- S = source
+		- L = length
+		- D = destination
+- AND 
+	- Syntax - AND S(R), D
+		- S = source
+		- R = rotate
+		- D = destination
+	- Syntax - AND S, L, D 
+		- S = source
+		- L = length
+		- D = destination
+- XOR 
+	- Syntax - XOR S(R), D
+		- S = source
+		- R = rotate
+		- D = destination
+	- Syntax - XOR S, L, D 
+		- S = source
+		- L = length
+		- D = destination
+- XEC
+	- Syntax - XEC I(S)
+		- I = immediate/label 
+		- S = source 
+- NZT
+	- Syntax - NZT S, I
+		- S = source
+		- I = immediate/label
+	- Syntax - NZT S, L, I
+		- S = source
+		- L = length
+		- I = immediate/label
+- CALL 
+	- Syntax - CALL I 
+		- I = immediate/label
+- RET 
+	- Syntax - RET
+- XMIT
+	- Syntax - XMIT I, D
+		- I = immediate/label
+		- D = destination
+	- Syntax - XMIT I, D, L
+		- I = immediate/label
+		- D = destination
+		- L = length
+- JMP 
+	- Syntax - JMP A 
+		- A = address (13 bit)
+
+Declarations (Preprocessor)
+Whatis?
+Keyword/syntax, behavior
+- INCLUDE
+- Macros
+- EQU
+
+Directives
+- ORG
+- DATA
+- `HIGH/`LOW
+
+XMIT, @377, AUX
+XMIT, `HIGH [immediate/label], AUX
+
+-------------------------------------------------------
+
+Programmer's Manual Changes
+III
+- buss
+- Return opcode 6 -> 5
+- Neither the OVF register nor the I/O bus [can] be used... 
+
+III/II
+- clarify NZT stuff (address/program, generic example)
+- Assembler notation: XMIT**,** @377, AUX
+- Assembler notation: XMIT 03, LIV5, 3 (change one of the 3s)
