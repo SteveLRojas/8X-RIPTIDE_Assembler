@@ -7,3 +7,5 @@ Simple assembler for 8X300 and 8X-RIPTIDE CPUs
 
 The above example will generate the output file in 3 formats: bin , mif, and coe.    
 These files are used for initalizing memory in FPGAs, which is useful when working with FPGA implementations of the supported processors.  
+
+test!
