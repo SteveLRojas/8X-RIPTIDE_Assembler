@@ -54,19 +54,21 @@ int main(int argc, char** argv)
 	head->n_line = 0xffffffff;
 	head->s_label = NULL;
 	head->s_line = NULL;
+	head->next = NULL;
 
 	macro_head->line_head = NULL;
 	macro_head->macro_name = NULL;
 	macro_head->formal_parameters = NULL;
-	
+	macro_head->next = NULL;
+
 	binary_segment_head->start_address = 0xffffffff;
 	binary_segment_head->end_address = 0xffffffff;
 	binary_segment_head->instruction_head = NULL;
 	binary_segment_head->next = NULL;
 	
-	source_segment_head->next = NULL;
 	source_segment_head->offset = 0xffffffff;
 	source_segment_head->source_head = NULL;
+	source_segment_head->next = NULL;
 	
 	//Parse program arguments
 	unsigned int arg = 1;

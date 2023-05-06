@@ -1,4 +1,5 @@
 CFLAGS=-std=c99 -pedantic -Wall -Wextra -Wconversion -D_XOPEN_SOURCE -march=native -O3
+# CFLAGS=-std=c99 -pedantic -Wall -Wextra -Wconversion -D_XOPEN_SOURCE -march=native -g
 LDFLAGS=-lm
 TARGET = ./bin/8xasm
 

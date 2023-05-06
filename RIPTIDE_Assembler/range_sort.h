@@ -97,7 +97,7 @@ void check_range_table(unsigned int num_segments)
 	return;
 }
 
-inline void free_range_table()
+void free_range_table()
 {
 	free(range_table);
 	return;

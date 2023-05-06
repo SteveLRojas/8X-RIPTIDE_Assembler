@@ -96,7 +96,7 @@ unsigned long get_label_value(char* label, unsigned long n_line, uint8_t name_in
 	exit(1);
 }
 
-inline void free_label_map()
+void free_label_map()
 {
 	free(label_map);
 	return;
